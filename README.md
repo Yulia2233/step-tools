@@ -36,6 +36,8 @@ ABC 零件本身不随仓库分发（许可原因），见下文"复现"。
 
 完整实验记录见 [docs/research_notes.md](docs/research_notes.md) 与 `docs/results_*.tsv`。
 
+**各版本 STEPIR 的演进与最新版的详细原理**见 [docs/STEPIR_VERSIONS.md](docs/STEPIR_VERSIONS.md)。
+
 ## 做了什么
 
 1. **曲面识别**（`cand/geomnorm.py`）：精确 D1 采样（点+外法向）→ 平面（SVD）→ 球（法线交点）→ 回转面（法线与轴相交的线性方程，再在 (z,ρ) 平面看子午线是常数/直线/圆）。B 样条面若其实是平面、圆柱、圆锥、球、环面，就按解析面输出。
