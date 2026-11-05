@@ -1,0 +1,482 @@
+[
+ {
+  "id": "x001",
+  "kind": "sweep_spline",
+  "spec": "SWEEP one closed planar profile (a rectangle) along a RAIL that is a smooth spline wire through 5 3D control points that are NOT coplanar (a free-form curved rail), using `scad.make_spline_redge` for the rail and `scad.sweep_rsolid`; is_frenet=False. The swept side surface must be a genuinely free-form (B-spline) surface, not a cylinder or torus.",
+  "finish": "chamfer a few sharp edges selected with QL predicates",
+  "size_mm": 100,
+  "seed": 663981
+ },
+ {
+  "id": "x002",
+  "kind": "sweep_spline",
+  "spec": "SWEEP one closed planar profile (a rectangle) along a RAIL that is a smooth spline wire through 7 3D control points that are NOT coplanar (a free-form curved rail), using `scad.make_spline_redge` for the rail and `scad.sweep_rsolid`; is_frenet=True. The swept side surface must be a genuinely free-form (B-spline) surface, not a cylinder or torus.",
+  "finish": "cut a through-hole along the part with a cylinder tool",
+  "size_mm": 80,
+  "seed": 633877
+ },
+ {
+  "id": "x003",
+  "kind": "sweep_spline",
+  "spec": "SWEEP one closed planar profile (a rounded rectangle (four lines and four arcs)) along a RAIL that is a smooth spline wire through 5 3D control points that are NOT coplanar (a free-form curved rail), using `scad.make_spline_redge` for the rail and `scad.sweep_rsolid`; is_frenet=False. The swept side surface must be a genuinely free-form (B-spline) surface, not a cylinder or torus.",
+  "finish": "union a rectangular mounting flange at one end and cut two bolt holes through it",
+  "size_mm": 60,
+  "seed": 281327
+ },
+ {
+  "id": "x004",
+  "kind": "sweep_spline",
+  "spec": "SWEEP one closed planar profile (a rounded rectangle (four lines and four arcs)) along a RAIL that is a smooth spline wire through 4 3D control points that are NOT coplanar (a free-form curved rail), using `scad.make_spline_redge` for the rail and `scad.sweep_rsolid`; is_frenet=True. The swept side surface must be a genuinely free-form (B-spline) surface, not a cylinder or torus.",
+  "finish": "union a rectangular mounting flange at one end and cut two bolt holes through it",
+  "size_mm": 80,
+  "seed": 591536
+ },
+ {
+  "id": "x005",
+  "kind": "sweep_spline",
+  "spec": "SWEEP one closed planar profile (a rectangle) along a RAIL that is a smooth spline wire through 7 3D control points that are NOT coplanar (a free-form curved rail), using `scad.make_spline_redge` for the rail and `scad.sweep_rsolid`; is_frenet=False. The swept side surface must be a genuinely free-form (B-spline) surface, not a cylinder or torus.",
+  "finish": "union a cylindrical boss and cut a blind hole in it",
+  "size_mm": 80,
+  "seed": 115955
+ },
+ {
+  "id": "x006",
+  "kind": "sweep_spline",
+  "spec": "SWEEP one closed planar profile (an ellipse-like closed spline) along a RAIL that is a smooth spline wire through 6 3D control points that are NOT coplanar (a free-form curved rail), using `scad.make_spline_redge` for the rail and `scad.sweep_rsolid`; is_frenet=True. The swept side surface must be a genuinely free-form (B-spline) surface, not a cylinder or torus.",
+  "finish": "union a rectangular mounting flange at one end and cut two bolt holes through it",
+  "size_mm": 100,
+  "seed": 770674
+ },
+ {
+  "id": "x007",
+  "kind": "sweep_spline",
+  "spec": "SWEEP one closed planar profile (a hexagon) along a RAIL that is a smooth spline wire through 7 3D control points that are NOT coplanar (a free-form curved rail), using `scad.make_spline_redge` for the rail and `scad.sweep_rsolid`; is_frenet=False. The swept side surface must be a genuinely free-form (B-spline) surface, not a cylinder or torus.",
+  "finish": "chamfer a few sharp edges selected with QL predicates",
+  "size_mm": 80,
+  "seed": 457724
+ },
+ {
+  "id": "x008",
+  "kind": "sweep_spline",
+  "spec": "SWEEP one closed planar profile (an L-shaped polygon) along a RAIL that is a smooth spline wire through 6 3D control points that are NOT coplanar (a free-form curved rail), using `scad.make_spline_redge` for the rail and `scad.sweep_rsolid`; is_frenet=False. The swept side surface must be a genuinely free-form (B-spline) surface, not a cylinder or torus.",
+  "finish": "cut a through-hole along the part with a cylinder tool",
+  "size_mm": 30,
+  "seed": 890942
+ },
+ {
+  "id": "x009",
+  "kind": "sweep_spline",
+  "spec": "SWEEP one closed planar profile (a rectangle) along a RAIL that is a smooth spline wire through 4 3D control points that are NOT coplanar (a free-form curved rail), using `scad.make_spline_redge` for the rail and `scad.sweep_rsolid`; is_frenet=False. The swept side surface must be a genuinely free-form (B-spline) surface, not a cylinder or torus.",
+  "finish": "no extra feature: the free-form body alone",
+  "size_mm": 45,
+  "seed": 528280
+ },
+ {
+  "id": "x010",
+  "kind": "sweep_spline",
+  "spec": "SWEEP one closed planar profile (a circle) along a RAIL that is a smooth spline wire through 7 3D control points that are NOT coplanar (a free-form curved rail), using `scad.make_spline_redge` for the rail and `scad.sweep_rsolid`; is_frenet=True. The swept side surface must be a genuinely free-form (B-spline) surface, not a cylinder or torus.",
+  "finish": "chamfer a few sharp edges selected with QL predicates",
+  "size_mm": 30,
+  "seed": 163338
+ },
+ {
+  "id": "x011",
+  "kind": "sweep_spline",
+  "spec": "SWEEP one closed planar profile (an ellipse-like closed spline) along a RAIL that is a smooth spline wire through 6 3D control points that are NOT coplanar (a free-form curved rail), using `scad.make_spline_redge` for the rail and `scad.sweep_rsolid`; is_frenet=True. The swept side surface must be a genuinely free-form (B-spline) surface, not a cylinder or torus.",
+  "finish": "fillet a few sharp edges selected with QL predicates",
+  "size_mm": 100,
+  "seed": 715456
+ },
+ {
+  "id": "x012",
+  "kind": "sweep_spline",
+  "spec": "SWEEP one closed planar profile (a rounded rectangle (four lines and four arcs)) along a RAIL that is a smooth spline wire through 7 3D control points that are NOT coplanar (a free-form curved rail), using `scad.make_spline_redge` for the rail and `scad.sweep_rsolid`; is_frenet=True. The swept side surface must be a genuinely free-form (B-spline) surface, not a cylinder or torus.",
+  "finish": "no extra feature: the free-form body alone",
+  "size_mm": 30,
+  "seed": 667609
+ },
+ {
+  "id": "x013",
+  "kind": "sweep_spline",
+  "spec": "SWEEP one closed planar profile (an L-shaped polygon) along a RAIL that is a smooth spline wire through 5 3D control points that are NOT coplanar (a free-form curved rail), using `scad.make_spline_redge` for the rail and `scad.sweep_rsolid`; is_frenet=False. The swept side surface must be a genuinely free-form (B-spline) surface, not a cylinder or torus.",
+  "finish": "union a rectangular mounting flange at one end and cut two bolt holes through it",
+  "size_mm": 80,
+  "seed": 46082
+ },
+ {
+  "id": "x014",
+  "kind": "sweep_spline",
+  "spec": "SWEEP one closed planar profile (a rectangle) along a RAIL that is a smooth spline wire through 5 3D control points that are NOT coplanar (a free-form curved rail), using `scad.make_spline_redge` for the rail and `scad.sweep_rsolid`; is_frenet=False. The swept side surface must be a genuinely free-form (B-spline) surface, not a cylinder or torus.",
+  "finish": "union a cylindrical boss and cut a blind hole in it",
+  "size_mm": 60,
+  "seed": 489578
+ },
+ {
+  "id": "x015",
+  "kind": "sweep_planar_spline",
+  "spec": "SWEEP one closed planar profile (a rounded rectangle (four lines and four arcs)) along a planar S-shaped spline rail (made with `scad.make_spline_redge`, 5 control points in one plane) using `scad.sweep_rsolid`; is_frenet=True. The swept side surface must be free-form.",
+  "finish": "fillet a few sharp edges selected with QL predicates",
+  "size_mm": 30,
+  "seed": 871228
+ },
+ {
+  "id": "x016",
+  "kind": "sweep_planar_spline",
+  "spec": "SWEEP one closed planar profile (a circle) along a planar S-shaped spline rail (made with `scad.make_spline_redge`, 5 control points in one plane) using `scad.sweep_rsolid`; is_frenet=True. The swept side surface must be free-form.",
+  "finish": "union a rectangular mounting flange at one end and cut two bolt holes through it",
+  "size_mm": 30,
+  "seed": 409600
+ },
+ {
+  "id": "x017",
+  "kind": "sweep_planar_spline",
+  "spec": "SWEEP one closed planar profile (a circle) along a planar S-shaped spline rail (made with `scad.make_spline_redge`, 6 control points in one plane) using `scad.sweep_rsolid`; is_frenet=True. The swept side surface must be free-form.",
+  "finish": "chamfer a few sharp edges selected with QL predicates",
+  "size_mm": 100,
+  "seed": 386021
+ },
+ {
+  "id": "x018",
+  "kind": "sweep_planar_spline",
+  "spec": "SWEEP one closed planar profile (a circle) along a planar S-shaped spline rail (made with `scad.make_spline_redge`, 5 control points in one plane) using `scad.sweep_rsolid`; is_frenet=True. The swept side surface must be free-form.",
+  "finish": "chamfer a few sharp edges selected with QL predicates",
+  "size_mm": 100,
+  "seed": 77743
+ },
+ {
+  "id": "x019",
+  "kind": "sweep_planar_spline",
+  "spec": "SWEEP one closed planar profile (a circle) along a planar S-shaped spline rail (made with `scad.make_spline_redge`, 5 control points in one plane) using `scad.sweep_rsolid`; is_frenet=True. The swept side surface must be free-form.",
+  "finish": "cut a through-hole along the part with a cylinder tool",
+  "size_mm": 80,
+  "seed": 849911
+ },
+ {
+  "id": "x020",
+  "kind": "sweep_planar_spline",
+  "spec": "SWEEP one closed planar profile (a rounded rectangle (four lines and four arcs)) along a planar S-shaped spline rail (made with `scad.make_spline_redge`, 6 control points in one plane) using `scad.sweep_rsolid`; is_frenet=True. The swept side surface must be free-form.",
+  "finish": "fillet a few sharp edges selected with QL predicates",
+  "size_mm": 60,
+  "seed": 717187
+ },
+ {
+  "id": "x021",
+  "kind": "sweep_planar_spline",
+  "spec": "SWEEP one closed planar profile (an ellipse-like closed spline) along a planar S-shaped spline rail (made with `scad.make_spline_redge`, 7 control points in one plane) using `scad.sweep_rsolid`; is_frenet=True. The swept side surface must be free-form.",
+  "finish": "no extra feature: the free-form body alone",
+  "size_mm": 45,
+  "seed": 338585
+ },
+ {
+  "id": "x022",
+  "kind": "sweep_planar_spline",
+  "spec": "SWEEP one closed planar profile (a hexagon) along a planar S-shaped spline rail (made with `scad.make_spline_redge`, 6 control points in one plane) using `scad.sweep_rsolid`; is_frenet=False. The swept side surface must be free-form.",
+  "finish": "union a rectangular mounting flange at one end and cut two bolt holes through it",
+  "size_mm": 30,
+  "seed": 876059
+ },
+ {
+  "id": "x023",
+  "kind": "sweep_mixed_rail",
+  "spec": "SWEEP one closed planar profile (an L-shaped polygon) along a rail wire made of a straight line followed by a spline edge (join them into one wire), using `scad.sweep_rsolid`; is_frenet=True. The spline part of the swept surface must be free-form.",
+  "finish": "union a cylindrical boss and cut a blind hole in it",
+  "size_mm": 100,
+  "seed": 563285
+ },
+ {
+  "id": "x024",
+  "kind": "sweep_mixed_rail",
+  "spec": "SWEEP one closed planar profile (a rounded rectangle (four lines and four arcs)) along a rail wire made of a straight line followed by a spline edge (join them into one wire), using `scad.sweep_rsolid`; is_frenet=True. The spline part of the swept surface must be free-form.",
+  "finish": "fillet a few sharp edges selected with QL predicates",
+  "size_mm": 30,
+  "seed": 745109
+ },
+ {
+  "id": "x025",
+  "kind": "sweep_mixed_rail",
+  "spec": "SWEEP one closed planar profile (a rectangle) along a rail wire made of a straight line followed by a spline edge (join them into one wire), using `scad.sweep_rsolid`; is_frenet=True. The spline part of the swept surface must be free-form.",
+  "finish": "fillet a few sharp edges selected with QL predicates",
+  "size_mm": 45,
+  "seed": 41382
+ },
+ {
+  "id": "x026",
+  "kind": "sweep_mixed_rail",
+  "spec": "SWEEP one closed planar profile (a rounded rectangle (four lines and four arcs)) along a rail wire made of a straight line followed by a spline edge (join them into one wire), using `scad.sweep_rsolid`; is_frenet=True. The spline part of the swept surface must be free-form.",
+  "finish": "union a cylindrical boss and cut a blind hole in it",
+  "size_mm": 45,
+  "seed": 670206
+ },
+ {
+  "id": "x027",
+  "kind": "sweep_mixed_rail",
+  "spec": "SWEEP one closed planar profile (a hexagon) along a rail wire made of a straight line followed by a spline edge (join them into one wire), using `scad.sweep_rsolid`; is_frenet=False. The spline part of the swept surface must be free-form.",
+  "finish": "union a cylindrical boss and cut a blind hole in it",
+  "size_mm": 80,
+  "seed": 207007
+ },
+ {
+  "id": "x028",
+  "kind": "sweep_mixed_rail",
+  "spec": "SWEEP one closed planar profile (a rectangle) along a rail wire made of a straight line followed by a spline edge (join them into one wire), using `scad.sweep_rsolid`; is_frenet=False. The spline part of the swept surface must be free-form.",
+  "finish": "chamfer a few sharp edges selected with QL predicates",
+  "size_mm": 30,
+  "seed": 528196
+ },
+ {
+  "id": "x029",
+  "kind": "sweep_mixed_rail",
+  "spec": "SWEEP one closed planar profile (an ellipse-like closed spline) along a rail wire made of a straight line followed by a spline edge (join them into one wire), using `scad.sweep_rsolid`; is_frenet=False. The spline part of the swept surface must be free-form.",
+  "finish": "fillet a few sharp edges selected with QL predicates",
+  "size_mm": 60,
+  "seed": 379760
+ },
+ {
+  "id": "x030",
+  "kind": "sweep_mixed_rail",
+  "spec": "SWEEP one closed planar profile (a rounded rectangle (four lines and four arcs)) along a rail wire made of a straight line followed by a spline edge (join them into one wire), using `scad.sweep_rsolid`; is_frenet=True. The spline part of the swept surface must be free-form.",
+  "finish": "fillet a few sharp edges selected with QL predicates",
+  "size_mm": 60,
+  "seed": 456861
+ },
+ {
+  "id": "x031",
+  "kind": "loft_noncongruent",
+  "spec": "LOFT through 4 planar section wires of DIFFERENT shapes and sizes (for example an ellipse-like closed spline changing into something else), stacked at different heights and slightly offset sideways, `scad.loft_rsolid(..., ruled=False)`. The sections must not be congruent copies of each other.",
+  "finish": "cut a through-hole along the part with a cylinder tool",
+  "size_mm": 60,
+  "seed": 612716
+ },
+ {
+  "id": "x032",
+  "kind": "loft_noncongruent",
+  "spec": "LOFT through 6 planar section wires of DIFFERENT shapes and sizes (for example an L-shaped polygon changing into something else), stacked at different heights and slightly offset sideways, `scad.loft_rsolid(..., ruled=False)`. The sections must not be congruent copies of each other.",
+  "finish": "cut a through-hole along the part with a cylinder tool",
+  "size_mm": 80,
+  "seed": 624384
+ },
+ {
+  "id": "x033",
+  "kind": "loft_noncongruent",
+  "spec": "LOFT through 7 planar section wires of DIFFERENT shapes and sizes (for example a circle changing into something else), stacked at different heights and slightly offset sideways, `scad.loft_rsolid(..., ruled=False)`. The sections must not be congruent copies of each other.",
+  "finish": "fillet a few sharp edges selected with QL predicates",
+  "size_mm": 45,
+  "seed": 791704
+ },
+ {
+  "id": "x034",
+  "kind": "loft_noncongruent",
+  "spec": "LOFT through 6 planar section wires of DIFFERENT shapes and sizes (for example an L-shaped polygon changing into something else), stacked at different heights and slightly offset sideways, `scad.loft_rsolid(..., ruled=False)`. The sections must not be congruent copies of each other.",
+  "finish": "chamfer a few sharp edges selected with QL predicates",
+  "size_mm": 80,
+  "seed": 854427
+ },
+ {
+  "id": "x035",
+  "kind": "loft_noncongruent",
+  "spec": "LOFT through 7 planar section wires of DIFFERENT shapes and sizes (for example a rounded rectangle (four lines and four arcs) changing into something else), stacked at different heights and slightly offset sideways, `scad.loft_rsolid(..., ruled=False)`. The sections must not be congruent copies of each other.",
+  "finish": "cut a through-hole along the part with a cylinder tool",
+  "size_mm": 60,
+  "seed": 627626
+ },
+ {
+  "id": "x036",
+  "kind": "loft_noncongruent",
+  "spec": "LOFT through 6 planar section wires of DIFFERENT shapes and sizes (for example a hexagon changing into something else), stacked at different heights and slightly offset sideways, `scad.loft_rsolid(..., ruled=False)`. The sections must not be congruent copies of each other.",
+  "finish": "cut a through-hole along the part with a cylinder tool",
+  "size_mm": 60,
+  "seed": 177433
+ },
+ {
+  "id": "x037",
+  "kind": "loft_noncongruent",
+  "spec": "LOFT through 5 planar section wires of DIFFERENT shapes and sizes (for example a hexagon changing into something else), stacked at different heights and slightly offset sideways, `scad.loft_rsolid(..., ruled=False)`. The sections must not be congruent copies of each other.",
+  "finish": "cut a through-hole along the part with a cylinder tool",
+  "size_mm": 45,
+  "seed": 906272
+ },
+ {
+  "id": "x038",
+  "kind": "loft_noncongruent",
+  "spec": "LOFT through 5 planar section wires of DIFFERENT shapes and sizes (for example an L-shaped polygon changing into something else), stacked at different heights and slightly offset sideways, `scad.loft_rsolid(..., ruled=False)`. The sections must not be congruent copies of each other.",
+  "finish": "union a rectangular mounting flange at one end and cut two bolt holes through it",
+  "size_mm": 45,
+  "seed": 776946
+ },
+ {
+  "id": "x039",
+  "kind": "loft_noncongruent",
+  "spec": "LOFT through 6 planar section wires of DIFFERENT shapes and sizes (for example a hexagon changing into something else), stacked at different heights and slightly offset sideways, `scad.loft_rsolid(..., ruled=False)`. The sections must not be congruent copies of each other.",
+  "finish": "cut a through-hole along the part with a cylinder tool",
+  "size_mm": 60,
+  "seed": 597458
+ },
+ {
+  "id": "x040",
+  "kind": "loft_noncongruent",
+  "spec": "LOFT through 7 planar section wires of DIFFERENT shapes and sizes (for example a rectangle changing into something else), stacked at different heights and slightly offset sideways, `scad.loft_rsolid(..., ruled=False)`. The sections must not be congruent copies of each other.",
+  "finish": "union a rectangular mounting flange at one end and cut two bolt holes through it",
+  "size_mm": 100,
+  "seed": 27146
+ },
+ {
+  "id": "x041",
+  "kind": "loft_noncongruent",
+  "spec": "LOFT through 5 planar section wires of DIFFERENT shapes and sizes (for example a rectangle changing into something else), stacked at different heights and slightly offset sideways, `scad.loft_rsolid(..., ruled=False)`. The sections must not be congruent copies of each other.",
+  "finish": "union a cylindrical boss and cut a blind hole in it",
+  "size_mm": 30,
+  "seed": 97125
+ },
+ {
+  "id": "x042",
+  "kind": "loft_noncongruent",
+  "spec": "LOFT through 4 planar section wires of DIFFERENT shapes and sizes (for example a rounded rectangle (four lines and four arcs) changing into something else), stacked at different heights and slightly offset sideways, `scad.loft_rsolid(..., ruled=False)`. The sections must not be congruent copies of each other.",
+  "finish": "union a rectangular mounting flange at one end and cut two bolt holes through it",
+  "size_mm": 80,
+  "seed": 41168
+ },
+ {
+  "id": "x043",
+  "kind": "loft_ruled",
+  "spec": "RULED loft (`ruled=True`) between two or three planar section wires of different shape (an ellipse-like closed spline to another polygon or circle), using `scad.loft_rsolid`.",
+  "finish": "no extra feature: the free-form body alone",
+  "size_mm": 45,
+  "seed": 807101
+ },
+ {
+  "id": "x044",
+  "kind": "loft_ruled",
+  "spec": "RULED loft (`ruled=True`) between two or three planar section wires of different shape (an L-shaped polygon to another polygon or circle), using `scad.loft_rsolid`.",
+  "finish": "no extra feature: the free-form body alone",
+  "size_mm": 60,
+  "seed": 892603
+ },
+ {
+  "id": "x045",
+  "kind": "loft_ruled",
+  "spec": "RULED loft (`ruled=True`) between two or three planar section wires of different shape (a rounded rectangle (four lines and four arcs) to another polygon or circle), using `scad.loft_rsolid`.",
+  "finish": "no extra feature: the free-form body alone",
+  "size_mm": 80,
+  "seed": 451619
+ },
+ {
+  "id": "x046",
+  "kind": "loft_ruled",
+  "spec": "RULED loft (`ruled=True`) between two or three planar section wires of different shape (a rectangle to another polygon or circle), using `scad.loft_rsolid`.",
+  "finish": "cut a through-hole along the part with a cylinder tool",
+  "size_mm": 100,
+  "seed": 526904
+ },
+ {
+  "id": "x047",
+  "kind": "loft_ruled",
+  "spec": "RULED loft (`ruled=True`) between two or three planar section wires of different shape (a circle to another polygon or circle), using `scad.loft_rsolid`.",
+  "finish": "union a cylindrical boss and cut a blind hole in it",
+  "size_mm": 45,
+  "seed": 605722
+ },
+ {
+  "id": "x048",
+  "kind": "loft_ruled",
+  "spec": "RULED loft (`ruled=True`) between two or three planar section wires of different shape (a rectangle to another polygon or circle), using `scad.loft_rsolid`.",
+  "finish": "union a cylindrical boss and cut a blind hole in it",
+  "size_mm": 80,
+  "seed": 468208
+ },
+ {
+  "id": "x049",
+  "kind": "revolve_spline",
+  "spec": "REVOLVE a closed profile that contains at least one spline edge (a free-form meridian made with `scad.make_spline_redge` inside a wire, closed with straight lines on the axis side) around an axis with `scad.revolve_rsolid`, 360 degrees. The result must contain a free-form surface of revolution, not just cones and cylinders.",
+  "finish": "fillet a few sharp edges selected with QL predicates",
+  "size_mm": 60,
+  "seed": 922754
+ },
+ {
+  "id": "x050",
+  "kind": "revolve_spline",
+  "spec": "REVOLVE a closed profile that contains at least one spline edge (a free-form meridian made with `scad.make_spline_redge` inside a wire, closed with straight lines on the axis side) around an axis with `scad.revolve_rsolid`, 360 degrees. The result must contain a free-form surface of revolution, not just cones and cylinders.",
+  "finish": "cut a through-hole along the part with a cylinder tool",
+  "size_mm": 45,
+  "seed": 690472
+ },
+ {
+  "id": "x051",
+  "kind": "revolve_spline",
+  "spec": "REVOLVE a closed profile that contains at least one spline edge (a free-form meridian made with `scad.make_spline_redge` inside a wire, closed with straight lines on the axis side) around an axis with `scad.revolve_rsolid`, 360 degrees. The result must contain a free-form surface of revolution, not just cones and cylinders.",
+  "finish": "fillet a few sharp edges selected with QL predicates",
+  "size_mm": 80,
+  "seed": 247648
+ },
+ {
+  "id": "x052",
+  "kind": "revolve_spline",
+  "spec": "REVOLVE a closed profile that contains at least one spline edge (a free-form meridian made with `scad.make_spline_redge` inside a wire, closed with straight lines on the axis side) around an axis with `scad.revolve_rsolid`, 360 degrees. The result must contain a free-form surface of revolution, not just cones and cylinders.",
+  "finish": "union a cylindrical boss and cut a blind hole in it",
+  "size_mm": 80,
+  "seed": 909583
+ },
+ {
+  "id": "x053",
+  "kind": "revolve_spline",
+  "spec": "REVOLVE a closed profile that contains at least one spline edge (a free-form meridian made with `scad.make_spline_redge` inside a wire, closed with straight lines on the axis side) around an axis with `scad.revolve_rsolid`, 360 degrees. The result must contain a free-form surface of revolution, not just cones and cylinders.",
+  "finish": "no extra feature: the free-form body alone",
+  "size_mm": 100,
+  "seed": 203499
+ },
+ {
+  "id": "x054",
+  "kind": "revolve_spline",
+  "spec": "REVOLVE a closed profile that contains at least one spline edge (a free-form meridian made with `scad.make_spline_redge` inside a wire, closed with straight lines on the axis side) around an axis with `scad.revolve_rsolid`, 360 degrees. The result must contain a free-form surface of revolution, not just cones and cylinders.",
+  "finish": "fillet a few sharp edges selected with QL predicates",
+  "size_mm": 100,
+  "seed": 36199
+ },
+ {
+  "id": "x055",
+  "kind": "revolve_spline",
+  "spec": "REVOLVE a closed profile that contains at least one spline edge (a free-form meridian made with `scad.make_spline_redge` inside a wire, closed with straight lines on the axis side) around an axis with `scad.revolve_rsolid`, 360 degrees. The result must contain a free-form surface of revolution, not just cones and cylinders.",
+  "finish": "union a rectangular mounting flange at one end and cut two bolt holes through it",
+  "size_mm": 100,
+  "seed": 526455
+ },
+ {
+  "id": "x056",
+  "kind": "revolve_spline",
+  "spec": "REVOLVE a closed profile that contains at least one spline edge (a free-form meridian made with `scad.make_spline_redge` inside a wire, closed with straight lines on the axis side) around an axis with `scad.revolve_rsolid`, 360 degrees. The result must contain a free-form surface of revolution, not just cones and cylinders.",
+  "finish": "cut a through-hole along the part with a cylinder tool",
+  "size_mm": 80,
+  "seed": 493144
+ },
+ {
+  "id": "x057",
+  "kind": "extrude_spline",
+  "spec": "EXTRUDE a closed profile whose outline contains spline edges (built with `scad.make_spline_redge` inside a wire) straight along a direction with `scad.extrude_rsolid`; the side surface must be free-form.",
+  "finish": "chamfer a few sharp edges selected with QL predicates",
+  "size_mm": 80,
+  "seed": 155614
+ },
+ {
+  "id": "x058",
+  "kind": "extrude_spline",
+  "spec": "EXTRUDE a closed profile whose outline contains spline edges (built with `scad.make_spline_redge` inside a wire) straight along a direction with `scad.extrude_rsolid`; the side surface must be free-form.",
+  "finish": "union a cylindrical boss and cut a blind hole in it",
+  "size_mm": 30,
+  "seed": 633692
+ },
+ {
+  "id": "x059",
+  "kind": "extrude_spline",
+  "spec": "EXTRUDE a closed profile whose outline contains spline edges (built with `scad.make_spline_redge` inside a wire) straight along a direction with `scad.extrude_rsolid`; the side surface must be free-form.",
+  "finish": "no extra feature: the free-form body alone",
+  "size_mm": 45,
+  "seed": 83087
+ },
+ {
+  "id": "x060",
+  "kind": "extrude_spline",
+  "spec": "EXTRUDE a closed profile whose outline contains spline edges (built with `scad.make_spline_redge` inside a wire) straight along a direction with `scad.extrude_rsolid`; the side surface must be free-form.",
+  "finish": "union a cylindrical boss and cut a blind hole in it",
+  "size_mm": 100,
+  "seed": 197058
+ }
+]

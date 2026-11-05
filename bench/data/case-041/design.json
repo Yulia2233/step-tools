@@ -1,0 +1,13 @@
+{
+ "key": "curved-swept-handle-01",
+ "family": "swept-handle",
+ "seed": 2026110530,
+ "features": [
+  "round-section-bent-grip",
+  "integral-two-foot-mounts",
+  "mounting-pattern-2-holes"
+ ],
+ "group": "curved",
+ "case": "case-041",
+ "ordinal": 41
+}

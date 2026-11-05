@@ -1,0 +1,8 @@
+{
+ "key": "x035",
+ "family": "loft_noncongruent",
+ "group": "extra",
+ "source": "codex gpt-6.1-sol, validated by gen/validate.py",
+ "spec": "LOFT through 7 planar section wires of DIFFERENT shapes and sizes (for example a rounded rectangle (four lines and four arcs) changing into something else), stacked at different heights and slightly offset sideways, `scad.loft_rsolid(..., ruled=False)`. The sections must not be congruent copies of each other.",
+ "finish": "cut a through-hole along the part with a cylinder tool"
+}

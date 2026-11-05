@@ -1,0 +1,37 @@
+{
+  "_comment": "STEP IR geometry normalisation: score = computational-geometry success rate x token factor on the 200-part tail-solid benchmark (dev families). Frozen after init.",
+  "run_command": "../envs/cad214/bin/python -I bench/eval_geom.py --workers 8",
+  "workdir": ".",
+  "metric_name": "score",
+  "metric_regex": "^SCORE:\\s*([-+0-9.eE]+)",
+  "direction": "max",
+  "min_improvement": 0.002,
+  "timeout_seconds": 1800,
+  "extra_metrics": {
+    "test_score": "^TEST_SCORE:\\s*([-+0-9.eE]+)",
+    "quality": "^QUALITY:\\s*([-+0-9.eE]+)",
+    "tokf": "^TOKF:\\s*([-+0-9.eE]+)",
+    "stability": "^STABILITY:\\s*([-+0-9.eE]+)",
+    "merge": "^MERGE:\\s*([-+0-9.eE]+)",
+    "analytic": "^ANALYTIC:\\s*([-+0-9.eE]+)",
+    "origin": "^ORIGIN:\\s*([-+0-9.eE]+)",
+    "blend": "^BLEND:\\s*([-+0-9.eE]+)",
+    "tok_rel": "^TOK_REL:\\s*([-+0-9.eE]+)",
+    "errors": "^ERRORS:\\s*([0-9]+)"
+  },
+  "editable": [
+    "cand/"
+  ],
+  "readonly": [
+    "bench/eval_geom.py",
+    "bench/build_variants.py",
+    "bench/build_gt_ops.py",
+    "bench/make_manifest.py",
+    "bench/MANIFEST.json",
+    "bench/baseline.json",
+    "bench/gt_ops_stage1.py",
+    "bench/check_gt_ops.py",
+    "bench/check_gt_ops_followup.py"
+  ],
+  "results_file": "results.tsv"
+}

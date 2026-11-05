@@ -1,0 +1,19 @@
+{
+ "key": "mech-02-08",
+ "family": "multi-axis-fluid-manifold",
+ "seed": 2026110517,
+ "features": [
+  "mounting-stock",
+  "ql-top-perimeter-bevel",
+  "ql-bottom-perimeter-round",
+  "central-manifold-stock",
+  "flat-topped-intersection-port",
+  "horizontal-galleries",
+  "upright-fluid-port",
+  "rear-gauge-port",
+  "elongated-fastening-slots"
+ ],
+ "group": "mechanical",
+ "case": "case-088",
+ "ordinal": 88
+}

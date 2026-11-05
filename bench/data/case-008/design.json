@@ -1,0 +1,15 @@
+{
+ "key": "curved-helical-sleeve-03",
+ "family": "freeform-and-helical-fixture",
+ "seed": 2026110562,
+ "features": [
+  "continuous-helical-rib",
+  "sleeve-core-and-end-seats",
+  "central-functional-bore",
+  "end-seat-4-fasteners",
+  "radial-oil-port"
+ ],
+ "group": "curved",
+ "case": "case-008",
+ "ordinal": 8
+}

@@ -1,0 +1,17 @@
+{
+ "key": "curved-twisted-strap-03",
+ "family": "twisted-strap",
+ "seed": 2026110552,
+ "features": [
+  "continuous-twisted-strap",
+  "integral-lower-mounting-flange",
+  "upper-circular-register",
+  "axial-cable-passage",
+  "mounting-pattern-4-holes",
+  "conical-fastener-leadins",
+  "register-transverse-locking-hole"
+ ],
+ "group": "curved",
+ "case": "case-063",
+ "ordinal": 63
+}

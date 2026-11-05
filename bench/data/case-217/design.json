@@ -1,0 +1,8 @@
+{
+ "key": "x017",
+ "family": "sweep_planar_spline",
+ "group": "extra",
+ "source": "codex gpt-6.1-sol, validated by gen/validate.py",
+ "spec": "SWEEP one closed planar profile (a circle) along a planar S-shaped spline rail (made with `scad.make_spline_redge`, 6 control points in one plane) using `scad.sweep_rsolid`; is_frenet=True. The swept side surface must be free-form.",
+ "finish": "chamfer a few sharp edges selected with QL predicates"
+}

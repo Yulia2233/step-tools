@@ -1,0 +1,8 @@
+{
+ "key": "x045",
+ "family": "loft_ruled",
+ "group": "extra",
+ "source": "codex gpt-6.1-sol, validated by gen/validate.py",
+ "spec": "RULED loft (`ruled=True`) between two or three planar section wires of different shape (a rounded rectangle (four lines and four arcs) to another polygon or circle), using `scad.loft_rsolid`.",
+ "finish": "no extra feature: the free-form body alone"
+}

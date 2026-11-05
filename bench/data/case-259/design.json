@@ -1,0 +1,8 @@
+{
+ "key": "x059",
+ "family": "extrude_spline",
+ "group": "extra",
+ "source": "codex gpt-6.1-sol, validated by gen/validate.py",
+ "spec": "EXTRUDE a closed profile whose outline contains spline edges (built with `scad.make_spline_redge` inside a wire) straight along a direction with `scad.extrude_rsolid`; the side surface must be free-form.",
+ "finish": "no extra feature: the free-form body alone"
+}

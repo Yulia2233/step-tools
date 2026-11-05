@@ -1,0 +1,17 @@
+{
+ "key": "rot-cable-guide-pulley-05",
+ "family": "cable-guide-pulley",
+ "seed": 2026110544,
+ "features": [
+  "turned-functional-section",
+  "flange-lower-edge-round",
+  "toroidal-relief-14",
+  "axial-bore",
+  "mounting-hole-pattern",
+  "bolt-head-counterbores",
+  "transverse-service-port"
+ ],
+ "group": "rotational",
+ "case": "case-155",
+ "ordinal": 155
+}

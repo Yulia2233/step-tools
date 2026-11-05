@@ -1,0 +1,14 @@
+{
+ "key": "curved-swept-elbow-05",
+ "family": "swept-elbow",
+ "seed": 2026110544,
+ "features": [
+  "quarter-circle-pipe-outer",
+  "inlet-and-outlet-flanges",
+  "swept-coolant-channel",
+  "flange-3-bolt-pattern"
+ ],
+ "group": "curved",
+ "case": "case-035",
+ "ordinal": 35
+}

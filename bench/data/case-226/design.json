@@ -1,0 +1,8 @@
+{
+ "key": "x026",
+ "family": "sweep_mixed_rail",
+ "group": "extra",
+ "source": "codex gpt-6.1-sol, validated by gen/validate.py",
+ "spec": "SWEEP one closed planar profile (a rounded rectangle (four lines and four arcs)) along a rail wire made of a straight line followed by a spline edge (join them into one wire), using `scad.sweep_rsolid`; is_frenet=True. The spline part of the swept surface must be free-form.",
+ "finish": "union a cylindrical boss and cut a blind hole in it"
+}

@@ -1,0 +1,17 @@
+{
+ "key": "rot-conical-manifold-05",
+ "family": "conical-manifold",
+ "seed": 2026110524,
+ "features": [
+  "turned-functional-section",
+  "flange-lower-edge-round",
+  "axial-bore",
+  "conical-outlet-seat",
+  "transverse-service-port",
+  "mounting-hole-pattern",
+  "bolt-head-counterbores"
+ ],
+ "group": "rotational",
+ "case": "case-165",
+ "ordinal": 165
+}

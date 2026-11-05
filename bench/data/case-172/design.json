@@ -1,0 +1,18 @@
+{
+ "key": "rot-domed-instrument-cover-02",
+ "family": "domed-instrument-cover",
+ "seed": 2026110531,
+ "features": [
+  "turned-functional-section",
+  "flange-lower-edge-bevel",
+  "spherical-dome",
+  "spherical-inner-cavity",
+  "dome-crown-vent",
+  "mounting-hole-pattern",
+  "bolt-head-counterbores",
+  "transverse-service-port"
+ ],
+ "group": "rotational",
+ "case": "case-172",
+ "ordinal": 172
+}

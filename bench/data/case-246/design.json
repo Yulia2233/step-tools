@@ -1,0 +1,8 @@
+{
+ "key": "x046",
+ "family": "loft_ruled",
+ "group": "extra",
+ "source": "codex gpt-6.1-sol, validated by gen/validate.py",
+ "spec": "RULED loft (`ruled=True`) between two or three planar section wires of different shape (a rectangle to another polygon or circle), using `scad.loft_rsolid`.",
+ "finish": "cut a through-hole along the part with a cylinder tool"
+}

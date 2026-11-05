@@ -1,0 +1,17 @@
+{
+ "key": "rot-spherical-socket-mount-01",
+ "family": "spherical-socket-mount",
+ "seed": 2026110510,
+ "features": [
+  "turned-functional-section",
+  "flange-lower-edge-round",
+  "spherical-cup-outside",
+  "spherical-bearing-seat",
+  "axial-bore",
+  "mounting-hole-pattern",
+  "transverse-service-port"
+ ],
+ "group": "rotational",
+ "case": "case-191",
+ "ordinal": 191
+}

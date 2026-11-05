@@ -1,0 +1,19 @@
+{
+ "key": "mech-06-07",
+ "family": "raised-sensor-bridge-mount",
+ "seed": 2026110556,
+ "features": [
+  "mounting-stock",
+  "ql-top-perimeter-round",
+  "bridge-support-pillars",
+  "overhead-sensor-beam",
+  "horizontal-sensor-interface",
+  "4-point-mounting-bores",
+  "bolt-head-counterbores",
+  "ql-post-boolean-fastener-exit-rims",
+  "underside-lightening-recess"
+ ],
+ "group": "mechanical",
+ "case": "case-107",
+ "ordinal": 107
+}

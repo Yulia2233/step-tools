@@ -1,0 +1,23 @@
+{
+ "key": "mech-02-09",
+ "family": "multi-axis-fluid-manifold",
+ "seed": 2026110518,
+ "features": [
+  "mounting-stock",
+  "ql-top-perimeter-round",
+  "ql-bottom-perimeter-bevel",
+  "central-manifold-stock",
+  "flat-topped-intersection-port",
+  "horizontal-galleries",
+  "upright-fluid-port",
+  "4-point-mounting-bores",
+  "bolt-entry-countersinks",
+  "ql-post-boolean-fastener-exit-rims",
+  "front-anti-rotation-keyway",
+  "rear-cable-anchor-pad",
+  "cable-anchor-bore"
+ ],
+ "group": "mechanical",
+ "case": "case-089",
+ "ordinal": 89
+}

@@ -1,0 +1,19 @@
+{
+ "key": "mech-02-02",
+ "family": "multi-axis-fluid-manifold",
+ "seed": 2026110511,
+ "features": [
+  "mounting-stock",
+  "ql-top-perimeter-bevel",
+  "central-manifold-stock",
+  "flat-topped-intersection-port",
+  "horizontal-galleries",
+  "upright-fluid-port",
+  "3-point-mounting-bores",
+  "bolt-head-counterbores",
+  "ql-post-boolean-fastener-exit-rims"
+ ],
+ "group": "mechanical",
+ "case": "case-082",
+ "ordinal": 82
+}

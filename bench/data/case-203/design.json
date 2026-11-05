@@ -1,0 +1,8 @@
+{
+ "key": "x003",
+ "family": "sweep_spline",
+ "group": "extra",
+ "source": "codex gpt-6.1-sol, validated by gen/validate.py",
+ "spec": "SWEEP one closed planar profile (a rounded rectangle (four lines and four arcs)) along a RAIL that is a smooth spline wire through 5 3D control points that are NOT coplanar (a free-form curved rail), using `scad.make_spline_redge` for the rail and `scad.sweep_rsolid`; is_frenet=False. The swept side surface must be a genuinely free-form (B-spline) surface, not a cylinder or torus.",
+ "finish": "union a rectangular mounting flange at one end and cut two bolt holes through it"
+}

@@ -1,0 +1,16 @@
+{
+ "key": "mech-05-01",
+ "family": "open-cylindrical-rail-saddle",
+ "seed": 2026110540,
+ "features": [
+  "mounting-stock",
+  "ql-top-perimeter-round",
+  "saddle-cradle-stock",
+  "longitudinal-open-rail-seat",
+  "2-point-mounting-bores",
+  "ql-post-boolean-fastener-exit-rims"
+ ],
+ "group": "mechanical",
+ "case": "case-091",
+ "ordinal": 91
+}

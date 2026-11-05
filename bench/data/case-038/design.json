@@ -1,0 +1,17 @@
+{
+ "key": "curved-swept-elbow-08",
+ "family": "swept-elbow",
+ "seed": 2026110547,
+ "features": [
+  "quarter-circle-pipe-outer",
+  "inlet-and-outlet-flanges",
+  "swept-coolant-channel",
+  "flange-3-bolt-pattern",
+  "inlet-counterbore-seats",
+  "integral-corner-mounting-lug",
+  "lug-fixing-hole"
+ ],
+ "group": "curved",
+ "case": "case-038",
+ "ordinal": 38
+}

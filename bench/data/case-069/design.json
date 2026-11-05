@@ -1,0 +1,15 @@
+{
+ "key": "curved-twisted-strap-09",
+ "family": "twisted-strap",
+ "seed": 2026110558,
+ "features": [
+  "continuous-twisted-strap",
+  "integral-lower-mounting-flange",
+  "upper-circular-register",
+  "axial-cable-passage",
+  "mounting-pattern-4-holes"
+ ],
+ "group": "curved",
+ "case": "case-069",
+ "ordinal": 69
+}

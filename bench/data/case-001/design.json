@@ -1,0 +1,14 @@
+{
+ "key": "curved-gordon-cover-01",
+ "family": "freeform-and-helical-fixture",
+ "seed": 2026110565,
+ "features": [
+  "intersecting-spline-network-skin",
+  "integral-gasket-land",
+  "underside-access-pocket",
+  "mounting-pattern-2-holes"
+ ],
+ "group": "curved",
+ "case": "case-001",
+ "ordinal": 1
+}

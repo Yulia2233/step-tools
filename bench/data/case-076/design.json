@@ -1,0 +1,19 @@
+{
+ "key": "mech-04-06",
+ "family": "gusseted-offset-instrument-bracket",
+ "seed": 2026110535,
+ "features": [
+  "mounting-stock",
+  "ql-top-perimeter-bevel",
+  "rear-instrument-upright",
+  "triangular-load-path-gussets",
+  "instrument-fixing-pair",
+  "3-point-mounting-bores",
+  "bolt-head-counterbores",
+  "ql-post-boolean-fastener-exit-rims",
+  "front-anti-rotation-keyway"
+ ],
+ "group": "mechanical",
+ "case": "case-076",
+ "ordinal": 76
+}

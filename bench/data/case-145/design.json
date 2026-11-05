@@ -1,0 +1,19 @@
+{
+ "key": "rot-bellmouth-seat-05",
+ "family": "bellmouth-seat",
+ "seed": 2026110554,
+ "features": [
+  "turned-functional-section",
+  "flange-lower-edge-round",
+  "axial-bore",
+  "bellmouth-conical-bore",
+  "toroidal-relief-17",
+  "mounting-hole-pattern",
+  "bolt-head-counterbores",
+  "transverse-service-port",
+  "inspection-window"
+ ],
+ "group": "rotational",
+ "case": "case-145",
+ "ordinal": 145
+}

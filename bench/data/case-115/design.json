@@ -1,0 +1,20 @@
+{
+ "key": "mech-01-05",
+ "family": "split-seat-bearing-pedestal",
+ "seed": 2026110504,
+ "features": [
+  "mounting-stock",
+  "ql-top-perimeter-round",
+  "ql-bottom-perimeter-bevel",
+  "elevated-bearing-land",
+  "clipped-barrel-crown",
+  "shaft-bearing-seat",
+  "radial-lubrication-port",
+  "4-point-mounting-bores",
+  "bolt-entry-countersinks",
+  "ql-post-boolean-fastener-exit-rims"
+ ],
+ "group": "mechanical",
+ "case": "case-115",
+ "ordinal": 115
+}

@@ -1,0 +1,16 @@
+{
+ "key": "mech-03-04",
+ "family": "twin-ear-actuator-clevis",
+ "seed": 2026110523,
+ "features": [
+  "mounting-stock",
+  "ql-top-perimeter-bevel",
+  "ql-bottom-perimeter-round",
+  "separated-pin-support-ears",
+  "coaxial-clevis-pin-bore",
+  "elongated-fastening-slots"
+ ],
+ "group": "mechanical",
+ "case": "case-134",
+ "ordinal": 134
+}

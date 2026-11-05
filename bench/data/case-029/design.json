@@ -1,0 +1,14 @@
+{
+ "key": "curved-sculpted-cover-09",
+ "family": "sculpted-cover",
+ "seed": 2026110528,
+ "features": [
+  "four-station-sculpted-cover",
+  "gasket-land-flange",
+  "lofted-electronics-pocket",
+  "mounting-pattern-4-holes"
+ ],
+ "group": "curved",
+ "case": "case-029",
+ "ordinal": 29
+}

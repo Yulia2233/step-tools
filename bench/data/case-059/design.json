@@ -1,0 +1,14 @@
+{
+ "key": "curved-twisted-loft-support-09",
+ "family": "twisted-loft-support",
+ "seed": 2026110518,
+ "features": [
+  "twisted-three-section-support",
+  "machined-base-flange",
+  "cable-passage",
+  "mounting-pattern-4-holes"
+ ],
+ "group": "curved",
+ "case": "case-059",
+ "ordinal": 59
+}

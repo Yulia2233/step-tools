@@ -1,0 +1,16 @@
+{
+ "key": "rot-metering-spool-06",
+ "family": "metering-spool",
+ "seed": 2026110505,
+ "features": [
+  "turned-functional-section",
+  "flange-lower-edge-bevel",
+  "toroidal-relief-22",
+  "axial-bore",
+  "transverse-service-port",
+  "mounting-hole-pattern"
+ ],
+ "group": "rotational",
+ "case": "case-186",
+ "ordinal": 186
+}

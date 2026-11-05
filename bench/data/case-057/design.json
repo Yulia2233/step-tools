@@ -1,0 +1,17 @@
+{
+ "key": "curved-twisted-loft-support-07",
+ "family": "twisted-loft-support",
+ "seed": 2026110516,
+ "features": [
+  "twisted-three-section-support",
+  "machined-base-flange",
+  "integral-top-register",
+  "cable-passage",
+  "mounting-pattern-2-holes",
+  "conical-fastener-leadins",
+  "cross-drilled-sensor-interface"
+ ],
+ "group": "curved",
+ "case": "case-057",
+ "ordinal": 57
+}

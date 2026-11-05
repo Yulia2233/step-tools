@@ -1,0 +1,15 @@
+{
+ "key": "curved-offset-nozzle-05",
+ "family": "offset-nozzle",
+ "seed": 2026110504,
+ "features": [
+  "three-station-offset-nozzle",
+  "integral-mounting-flange",
+  "three-station-flow-passage",
+  "mounting-pattern-4-holes",
+  "flange-orientation-key"
+ ],
+ "group": "curved",
+ "case": "case-015",
+ "ordinal": 15
+}

@@ -1,0 +1,21 @@
+{
+ "key": "mech-07-02",
+ "family": "three-way-valve-fixture-body",
+ "seed": 2026110561,
+ "features": [
+  "mounting-stock",
+  "ql-top-perimeter-bevel",
+  "main-horizontal-valve-barrel",
+  "upright-valve-neck",
+  "transverse-auxiliary-boss",
+  "main-valve-through-passage",
+  "upright-valve-passage",
+  "auxiliary-valve-passage",
+  "3-point-mounting-bores",
+  "bolt-head-counterbores",
+  "ql-post-boolean-fastener-exit-rims"
+ ],
+ "group": "mechanical",
+ "case": "case-122",
+ "ordinal": 122
+}

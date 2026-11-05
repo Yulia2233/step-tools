@@ -1,0 +1,17 @@
+{
+ "key": "curved-offset-nozzle-04",
+ "family": "offset-nozzle",
+ "seed": 2026110503,
+ "features": [
+  "three-station-offset-nozzle",
+  "integral-mounting-flange",
+  "three-station-flow-passage",
+  "mounting-pattern-3-holes",
+  "counterbored-fastener-seats",
+  "conical-fastener-leadins",
+  "radial-pressure-tap"
+ ],
+ "group": "curved",
+ "case": "case-014",
+ "ordinal": 14
+}

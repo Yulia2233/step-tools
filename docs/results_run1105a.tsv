@@ -1,0 +1,6 @@
+run	commit	score	test_score	quality	tokf	stability	merge	analytic	origin	blend	tok_rel	errors	status	seconds	description
+1	bf208cd	0.14888	0.1042	0.29351	0.50723	0.12411	0.0039	0.5	0.58599	0.2566	2.46438	0	keep	224.6	baseline: stepir.build_ir + stepir_ops.augment(fit) as of 2026-11-05
+2	32579ed	0.32759	0.27077	0.48586	0.67426	0.43578	0.0039	0.98415	0.59608	0.2566	1.85388	0	keep	307.1	E1 surface recognition: B-spline faces -> plane/sphere/cyl/cone/torus from exact D1 samples (SVD, normal-line intersection, twist null-space axis + meridian)
+3	8ec2db2	0.37156	0.29445	0.48948	0.75908	0.44722	0.00778	0.98223	0.59608	0.2566	1.64674	0	keep	299.5	E2 edge recognition: B-spline boundary edges -> LINE / circular arc / full circle (tol 1e-5*diag), restores rect/c/L/A loops and prism compression on nurbs variants
+4	19b8e97	0.75801	0.68417	0.75801	1	0.87715	0.94282	0.99511	0.5916	0.2407	1.09931	0	keep	303.0	E3 merge adjacent same-carrier analytic faces: union boundary loops, coalesce collinear lines/co-circular arcs, planar pts from loops, axis candidates + UV-grid sampling fallback
+5	8dd4100	0.77662	0.7114	0.77662	1	0.90927	0.99141	0.99511	0.6	0.2407	1.02603	0	keep	301.6	E3b merge free-form faces via G2 continuity across shared edges (normal + mean/Gaussian curvature); sibling 491/495, cross-parent FP 2/636
