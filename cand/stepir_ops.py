@@ -319,6 +319,11 @@ def _line_x(p1, p2, q1, q2):
     return np.asarray(p1, float) + s * d1
 
 
+def _seg_end(sg):
+    """End point of a loop segment: ["L",x,y] | ["A",cx,cy,x,y,s] | ["E",cx,cy,a,b,ux,uy,x,y,s] | ["S",deg,x,y,[mx,my]]."""
+    return list(sg[{"L": 1, "A": 3, "E": 7, "S": 2}.get(sg[0], 1):][:2])
+
+
 def sharp_loops(rec, cyls):
     """The planar loops with every arc that is the trace of a fillet cylinder (axis along the face normal, same radius,
     same centre) replaced by the corner its two neighbouring lines meet at: the outline before the edge was rounded."""
@@ -340,7 +345,7 @@ def sharp_loops(rec, cyls):
         if "e" not in lp:
             out.append(lp)
             continue
-        pts = [list(lp["s"])] + [sg[1:3] if sg[0] == "L" else sg[3:5] for sg in lp["e"]]
+        pts = [list(lp["s"])] + [_seg_end(sg) for sg in lp["e"]]
         segs = list(lp["e"])
         k = len(segs)
         drop = set()
