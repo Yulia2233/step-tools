@@ -267,6 +267,40 @@ def _swept(face, cap, lines, arcs):
     return False
 
 
+def _straight_between(infos, a, b, n):
+    """Every face that touches both caps must be a straight sweep along n (a plane containing n, or a cylinder whose axis
+    is n); otherwise two congruent caps are joined by something else - a helix, a loft, a twist - and are not a prism."""
+    rep = lambda q: infos[q].get("dead", q)
+    ra, rb = rep(a), rep(b)
+    bridges = 0
+    for k, inf in enumerate(infos):
+        if "dead" in inf or k in (ra, rb):
+            continue
+        nb = {rep(q) for q in inf["adj"]}
+        if ra in nb and rb in nb:
+            bridges += 1
+            if inf["name"] == "PLANE" and abs(float(inf["n"] @ n)) <= 1e-4:
+                continue
+            if inf["name"] == "CYL" and abs(abs(float(np.asarray(inf["dirv"]) @ n) / (np.linalg.norm(inf["dirv"]) or 1.0)) - 1.0) <= 1e-5:
+                continue
+            return False
+    if bridges == 0:                                       # two faces nothing joins are no prism
+        return False
+    # every face across an edge of either cap must run straight along n: opposite walls of a hex socket are bounded by the
+    # other walls at 60 degrees, and extruding one wall's outline to the other would be a box, not the socket
+    for cap in (ra, rb):
+        for q in {rep(x) for x in infos[cap]["adj"]} - {ra, rb}:
+            inf = infos[q]
+            if inf["name"] == "PLANE" and abs(float(inf["n"] @ n)) <= 1e-4:
+                continue
+            if inf["name"] == "CYL" and abs(abs(float(np.asarray(inf["dirv"]) @ n) / (np.linalg.norm(inf["dirv"]) or 1.0)) - 1.0) <= 1e-5:
+                continue
+            if inf["name"] == "PLANE" and abs(abs(float(inf["n"] @ n)) - 1.0) <= 1e-6:
+                continue                                   # a parallel face beside the cap (a step), not a side
+            return False
+    return True
+
+
 def detect_prisms(infos, order, loops=None):
     """Cap pairs of extrusions and the lateral faces they imply.
 
@@ -303,6 +337,8 @@ def detect_prisms(infos, order, loops=None):
         if {a, b} & (used | implied):
             continue
         na = infos[a]["n"]
+        if not _straight_between(infos, a, b, na):
+            continue
         oa, ob = infos[a]["d"], -infos[b]["d"]
         lines, arcs = _cap_segments(infos[a], loops.get(a))
         lat = set()
@@ -374,6 +410,59 @@ def canon_axes(ir_text):
     return "\n".join(out) + "\n"
 
 
+def swept_record(inf):
+    """IR fields of a surface of revolution (REV) or linear extrusion (EXT): the motion and the exact generating curve.
+
+    REV: `p`,`d` axis; `span` degrees of rotation; `gen` = the generator in the meridian plane spanned by `d` and `e`:
+         `zr` its B-spline poles as (z along d from p, r along e), `deg`, `knots`, `mult`, optional `w`, `t` the used range.
+    EXT: `d` direction, `v` the extrusion range along d; `gen` the generator's 3D poles (`poles`) and spline data.
+    A generator with more than MAX_GEN_POLES poles is left to the query tool (`gen` then only carries `n` and `deg`)."""
+    gen = inf["gen"]
+    n = len(gen.get("zr") or gen.get("poles"))
+    out = {}
+    if inf["name"] == "REV":
+        out["e"] = [r(c, 4) for c in inf["e"]]
+        out["span"] = r(math.degrees(inf["ur"][1] - inf["ur"][0]), 1)
+    else:
+        out["v"] = [r(inf["ext_v"][0]), r(inf["ext_v"][1])]
+    if n > geomnorm.MAX_GEN_POLES:
+        out["gen"] = {"n": n, "deg": gen["deg"], "more": "stepir_query face"}
+        return out
+    g = {"deg": gen["deg"]}
+    if "zr" in gen:
+        g["zr"] = [[r(a), r(b)] for a, b in gen["zr"]]
+    else:
+        g["poles"] = [[r(c) for c in p] for p in gen["poles"]]
+    g["knots"] = [r(x, 6) for x in gen["knots"]]
+    g["mult"] = gen["mult"]
+    if "w" in gen:
+        g["w"] = [r(x, 6) for x in gen["w"]]
+    if gen.get("periodic"):
+        g["periodic"] = 1
+    g["t"] = [r(x, 6) for x in gen["t"]]
+    out["gen"] = g
+    return out
+
+
+def canon_cone(inf):
+    """One convention for every cone, native or recognised: `p` is the point on the axis level with the face's narrow end,
+    `dirv` points the way the radius grows, `rad` is the radius there, `ang` the half-angle (> 0), `vr` = (0, slant length).
+
+    A STEP cone is P(u, v) = O + (R + v sin a) (cos u X + sin u Y) + v cos a Z with a signed half-angle a and any v range,
+    so p + v d with the native numbers can put the narrow end on either side and even report a negative radius."""
+    a = float(inf["ang"])
+    z = np.asarray(inf["dirv"], float)
+    z = z / (np.linalg.norm(z) or 1.0)
+    v0, v1 = float(inf["vr"][0]), float(inf["vr"][1])
+    rho = lambda v: float(inf["rad"]) + v * math.sin(a)
+    vs, vb = (v0, v1) if abs(rho(v0)) <= abs(rho(v1)) else (v1, v0)
+    axial = (vb - vs) * math.cos(a)
+    d = z if axial >= 0 else -z
+    inf["p"] = np.asarray(inf["p"], float) + z * (vs * math.cos(a))
+    inf["dirv"], inf["rad"], inf["ang"] = d, abs(rho(vs)), abs(a)
+    inf["vr"] = (0.0, abs(v1 - v0))
+
+
 def build_ir(path):
     model = brep.load_step_rbrepmodel(path=str(path))
     summ = brep.inspect_step_rsummary(path=str(path))
@@ -413,8 +502,12 @@ def build_ir(path):
             inf.update(p=np.asarray(p["center"], float), rad=p["radius"], dirv=np.asarray(p.get("axis_direction", [0, 0, 1]), float))
             inf["cc"] = 0 if reversed_face(model, i) else 1
         inf["ur"], inf["vr"] = p.get("u_range"), p.get("v_range")
+        if name == "CONE" and inf.get("ang") is not None and inf.get("vr"):
+            canon_cone(inf)
         if name in ("BSPL", "BEZ", "OTHER"):
             rec = geomnorm.recognize_face(model, i, diag, centre)
+            if rec is None and g["type"] in ("REVOLUTION", "EXTRUSION"):
+                rec = geomnorm.swept_carrier(model, i, g, diag)
             if rec is not None:
                 inf.update(rec)
                 name = inf["name"]
@@ -430,7 +523,7 @@ def build_ir(path):
             return (rk, tuple(round(float(c), 2) for c in inf["n"]), round(inf["d"], 3), -round(inf["area"], 2))
         if "dirv" in inf:
             return (rk, round(float(inf.get("rad") or 0), 3), tuple(round(float(c), 2) for c in inf["dirv"]), -round(inf["area"], 2))
-        return (rk, 0, 0, -round(inf["area"], 2))
+        return (rk, 0, (), -round(inf["area"], 2))
 
     geomnorm.merge_groups(model, infos, diag)
     live = [k for k in range(nf) if "dead" not in infos[k]]
@@ -452,7 +545,7 @@ def build_ir(path):
             pts = loop_points(loops, fr)
         elif inf["name"] in ("BSPL", "BEZ", "OTHER"):
             loops, pts = face_loops_raw(model, raw, None) if raw else face_loops(model, fid, None)
-        else:
+        else:                                    # analytic and REV/EXT faces: the carrier and its ranges say where they are
             loops = None
             if raw is None:
                 raw = [brep.inspect_face_boundaries_rdescriptor(model_or_path=model, face_id=fid, compact=True)]
@@ -468,7 +561,7 @@ def build_ir(path):
     types = Counter(infos[k]["name"] for k in live)
     bb = summ["bounding_box"]
     header = {"unit": "mm", "bbox": [[r(c) for c in bb["min"]], [r(c) for c in bb["max"]]], "vol": r(summ["volume"], 2),
-              "area": r(summ["surface_area"], 2), "counts": {"face": len(live), "edge": summ["edge_count"]}, "types": dict(types),
+              "area": r(summ["surface_area"], 2), "solids": len(model.bodies), "counts": {"face": len(live), "edge": summ["edge_count"]}, "types": dict(types),
               "implied": len(implied)}
     lines = [json.dumps(header, separators=(",", ":"))]
     for j, k in enumerate(order):
@@ -524,12 +617,17 @@ def build_ir(path):
                 ur, vr = inf["ur"], inf["vr"]
                 if ur:
                     span = math.degrees(ur[1] - ur[0])
+                    if span > 360.0:                          # a face that winds round its axis more than once (a helical strip)
+                        rec["wraps"] = r(span / 360.0, 2)
+                        span = 360.0
                     rec["span"] = r(span, 1)
                     if "ref" in inf and span < 359.0:
                         rec["ref"] = [r(c, 4) for c in inf["ref"]]
                 if vr and not ("c0" in rec):
                     rec["v"] = [r(vr[0]), r(vr[1])] if lin else [r(math.degrees(vr[0]), 1), r(math.degrees(vr[1]), 1)]
                 rec["cc"] = inf["cc"]
+            elif inf["name"] in ("REV", "EXT"):
+                rec.update(swept_record(inf))
             else:
                 rec["bb"] = inf["bb"]
                 rec["deg"] = inf["deg"]

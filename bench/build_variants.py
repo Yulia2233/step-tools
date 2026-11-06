@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build the perturbed variants of every benchmark part, with exact parent-face ground truth.
 
-  python -I bench/build_variants.py [--cases case-001 ...] [--workers 8]
+  envs/cad214/bin/python -I bench/build_variants.py [--cases case-001 ...] [--workers 8]
 
 For each bench/data/<case>/orig.step it writes
   split.step       closed (periodic) faces cut at the seam into halves, and the large faces cut by area: the same solid,

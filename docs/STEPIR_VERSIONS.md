@@ -31,7 +31,9 @@ STEPIR 只保留这些，并且**只依赖 SimpleCADAPI 自带的检查器**（`
 | v5 + 面号映射 | 2026-10-28 | `d583dbe` | 暴露 `build_ir.last_face_map`（B-rep 面下标 → IR id） | 让其它工具能把分析结果写回 IR 面号 |
 | 增强 IR | 2026-10 下旬 | `stepir_ops.py` | 末尾追加**派生行**：倒角/圆角区域及其圆滑的两个面（`blend`）、共轴面簇（`axis`）、子午轮廓（`meridian`） | 教师在 218 个难件上用 `shared_boundary` 选边从 0.5% 升到 45%；loft/sweep 不受影响 |
 | 增强 IR + 运动学拟合 | 2026-10-29/30 | `cadfit.py`，`--fit` | 再加 `op`（这组面由哪种刚体运动扫出）与 `freeform`（没有刚体运动能扫出） | 34 件配对中 revolve 3%→18%、loft 0%→6%；副作用是 `shared_boundary` 从 91% 掉到 15% |
-| **v6 几何归一化** | 2026-11-05 | 本仓库 `cand/` | 曲面识别、边识别、同曲面合并、在归一化后的面上重做倒角检测、放样/扫掠区分、信息分层与按需查询 | 见第四节 |
+| v6 几何归一化 | 2026-11-05 | 本仓库 `cand/` | 曲面识别、边识别、同曲面合并、在归一化后的面上重做倒角检测、放样/扫掠区分、信息分层与按需查询 | 见第四节 |
+| v6.1 | 2026-11-06 | 本仓库 `cand/` | 圆锥统一写法；`REV`/`EXT` 带精确母线；棱柱只认直侧面；扫掠给 `rail`/`profile`/`frame`、放样给 `sections`；倒角圆角按一次操作分组 | codex 用 v6 IR 逆向的诊断（`docs/probes/probe_v6_ANALYSIS.md`）；SCORE 0.9295 |
+| **v6.2（当前）** | 2026-11-06 | 本仓库 `cand/`、`bundle/` | 退化轨道不输出、螺旋拟合、截面写成 `L`/`A` 链或精确 B 样条、`sharp` 尖角轮廓、棱柱要求每条底边邻面直、`wraps`、表头 `solids`、子午轮廓标 `gap` | v6.1 复测中 4 件被新信息带偏（`docs/probes/probe_v61_ANALYSIS.md`）；SCORE 0.9301 |
 
 v3 的源码注释自称 "version 3"；v1、v2 早于代码仓库，没有留下记录，本文不讨论。
 
@@ -272,6 +274,23 @@ B 样条边在原 IR 里写成 `["S",deg,x,y,[mx,my]]`，既长又不可用。v6
 | `SWEEP_TOL` | 2.5e-3 | 等参线距离矩阵相对变化 | OCC 扫掠逼近精度；扫掠 89% < 1e-3，放样 0% < 1e-3 |
 | `STEPIR_NDIG` | 4 | 输出小数位 | 沿用 |
 
+### 3.11 v6.1 / v6.2 的增量
+
+v6.1、v6.2 不改变 3.1–3.10 的流程，只改输出内容（细节与数字见 `docs/RESULTS.md` 末两节）：
+
+| 内容 | 写法 |
+|---|---|
+| 圆锥 | `p` 为窄端在轴上的点，`d` 指向半径增大方向，`r` 为该处半径，`ang` 半角，`v=[0, 母线长]` |
+| 回转/拉伸曲面 | `t:"REV"` / `t:"EXT"`，`gen` 给精确母线（REV 为子午面内 (z, r) 极点；EXT 为三维极点；`deg`、`knots`、`mult`、可选 `w`、`periodic`） |
+| 棱柱 | 连接两底面的侧面存在，且每条底边上的邻面都是直的，才省略侧面 |
+| 扫掠 | `{"derived":"op","op":"sweep","rail":[截面质心],"profile":{o,n,x, circle|loop|bspline|poly|through},"frame":"frenet|fixed"}`；截面不动则无 `rail`；轨道断开给 `rail_partial`；螺纹给 `helix` |
+| 放样 | `{"derived":"op","op":"loft","sections":[...]}`，依次经过的截面（同上编码，最多 8 个） |
+| 倒角圆角 | 一行一个操作：`{"derived":"fillet","r","faces","between":[[A,B],...],"corners","on_blend"}`、`{"derived":"chamfer","d",...,"uncertain"}` |
+| 尖角轮廓 | `{"derived":"sharp","face","loops"}`：平面在竖直边倒圆前的轮廓（尖角代替圆角弧） |
+| 其他 | 表头 `solids`；绕转超过 360° 时 `span` 封顶并给 `wraps`；子午轮廓按路径串接，断处标 `gap`；空列表省略 |
+
+单文件版：`python bundle/build_bundle.py --out stepir.py` 把 `cand/` 的 8 个模块打成一个文件（给只能复制单个工具文件的 agent 工作区用），用法 `python stepir.py part.step`（完整 IR）、`--base`（仅面记录）、`python stepir.py query part.step face|evidence|axis|neighbours ...`。
+
 ---
 
 ## 四、效果
@@ -297,6 +316,8 @@ B 样条边在原 IR 里写成 `["S",deg,x,y,[mx,my]]`，既长又不可用。v6
 
 注："起点"指本轮优化开始时的版本，即增强 IR（v5 + 派生行 + cadfit）。
 
+v6.1 → v6.2 在同一基准上：SCORE 0.9295 → 0.9301（倒角圆角 0.840 → 0.843，其余持平）；v6.1 的真实单实体盲测：稳定性 0.960、合并 0.991、解析面召回 0.990、特异度 1.0。
+
 ---
 
 ## 五、局限
@@ -319,3 +340,5 @@ B 样条边在原 IR 里写成 `["S",deg,x,y,[mx,my]]`，既长又不可用。v6
 | `cand/stepir_ops.py` | 派生行的组装与分层（`augment`），放样/扫掠分类 |
 | `cand/stepir_query.py` | 第三层按需查询 |
 | `cand/pipeline.py` | 评分器调用的入口：`run(step) -> {"lines","face_map"}` |
+| `cand/construct.py` | 自由曲面构造参数：扫掠的轨道/截面/标架、螺旋拟合、放样截面 |
+| `bundle/build_bundle.py` | 把以上模块打成单文件 `stepir.py` |

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Computational-geometry success rate of a STEP -> IR candidate (cand/pipeline.py), on the 200-part tail-solid benchmark.
 
-  python -I bench/eval_geom.py [--cases case-001 ...] [--workers 8] [--variants orig,split,nurbs,splitnurbs]
+  envs/cad214/bin/python -I bench/eval_geom.py [--cases case-001 ...] [--workers 8] [--variants orig,split,nurbs,splitnurbs]
 
 Every part exists in four forms - the original, `split` (periodic faces cut at the seam, large faces cut by area),
 `nurbs` (every face converted to a B-spline surface) and `splitnurbs` - and the answer key is exact:
@@ -35,7 +35,7 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
 DATA = HERE / "data"
 CAND = ROOT / "cand"
-TOKENIZER = Path(os.environ.get("STEPIR_TOKENIZER", str(ROOT.parent / "envs" / "tok" / "tokenizer.json")))   # a Qwen tokenizer.json
+TOKENIZER = ROOT.parent / "envs" / "tok" / "tokenizer.json"
 VARIANTS = ("orig", "split", "nurbs", "splitnurbs")
 ANALYTIC = ("PLANE", "CYLINDER", "CONE", "SPHERE", "TORUS")
 IR_TO_SDK = {"PLANE": "PLANE", "CYL": "CYLINDER", "CONE": "CONE", "SPHERE": "SPHERE", "TORUS": "TORUS"}
@@ -352,9 +352,17 @@ def score_variant(case, variant, orig, var, parent, out, fm_orig_recs, tok, gt_o
             elif kind == "origin" and dl.get("op"):
                 for i in dl.get("faces", []):
                     claims[i].add(str(dl["op"]))
-            elif kind == "blend":
-                for i in dl.get("faces", []):
-                    blend_of[i] = dl
+            elif kind in ("blend", "fillet", "chamfer"):
+                faces = dl.get("faces", [])
+                btw = dl.get("between") or []
+                grouped = len(btw) == len(faces) and len(faces) > 0 and all(isinstance(x, list) for x in btw)
+                for idx, i in enumerate(faces):
+                    entry = dict(dl)
+                    if grouped:
+                        entry["between"] = btw[idx]
+                    blend_of[i] = entry
+                for i in dl.get("corners", []):            # corner patches of a fillet chain: blend faces without a pair
+                    blend_of.setdefault(i, {**dl, "between": []})
         rigid = {"extrude", "revolve", "helical"}
         # which variant faces fall in which IR group, and which original faces each IR group covers
         cover = defaultdict(set)

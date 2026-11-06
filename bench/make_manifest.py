@@ -8,7 +8,6 @@ for pat in ("data/*/orig.step", "data/*/split.step", "data/*/nurbs.step", "data/
             "data/*/gt_ops.json", "data/*/design.json", "data/*/model.py", "baseline.json"):
     for p in sorted(HERE.glob(pat)):
         files[str(p.relative_to(HERE))] = hashlib.sha256(p.read_bytes()).hexdigest()
-import os
-tok = Path(os.environ.get("STEPIR_TOKENIZER", HERE.parent.parent / "envs" / "tok" / "tokenizer.json"))
+tok = HERE.parent.parent / "envs" / "tok" / "tokenizer.json"
 json.dump({"n_files": len(files), "files": files}, open(HERE / "MANIFEST.json", "w"), indent=0, sort_keys=True)
-print(len(files), "files frozen" + (f"; tokenizer sha {hashlib.sha256(tok.read_bytes()).hexdigest()[:12]}" if tok.exists() else ""))
+print(len(files), "files frozen; tokenizer sha", hashlib.sha256(tok.read_bytes()).hexdigest()[:12])

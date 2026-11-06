@@ -36,6 +36,8 @@ ABC 零件本身不随仓库分发（许可原因），见下文"复现"。
 
 完整实验记录见 [docs/research_notes.md](docs/research_notes.md) 与 `docs/results_*.tsv`。
 
+**当前版本 v6.2**（2026-11-06）：在 v6 之上按两轮 codex 逆向诊断修正了会误导模型的输出（圆锥写法、回转/拉伸曲面的精确母线、棱柱误判），给自由曲面加了构造参数（扫掠的轨道/截面/标架、螺旋、放样截面），倒角圆角改为一行一次操作。合成基准 SCORE 0.926 → 0.9301；见 [docs/RESULTS.md](docs/RESULTS.md) 末两节，诊断记录在 [docs/probes/](docs/probes/)。
+
 **各版本 STEPIR 的演进与最新版的详细原理**见 [docs/STEPIR_VERSIONS.md](docs/STEPIR_VERSIONS.md)。
 
 ## 做了什么
@@ -51,17 +53,19 @@ ABC 零件本身不随仓库分发（许可原因），见下文"复现"。
 
 ```
 cand/        被测代码：stepir.py（STEP→IR）、stepir_ops.py（派生行）、geomnorm.py（识别/合并）、blends.py、cadfit.py、
-             pipeline.py（评分器调用的入口）、stepir_query.py（按需查询）
-bench/       评分器 eval_geom.py、变体与真值生成脚本、各零件的 model.py 与 design.json（不含 STEP，见下）
+             construct.py（扫掠/放样构造参数）、pipeline.py（评分器调用的入口）、stepir_query.py（按需查询）
+bundle/      build_bundle.py：把 cand/ 打成单文件 stepir.py
+bench/       评分器 eval_geom.py、变体与真值生成脚本、各零件的 model.py 与 design.json（不含 STEP，见下）；
+             construct_gt/（扫掠/放样的构造真值）、eval_construct.py、eval_rebuild.py（只用 IR 参数重建曲面并量误差）
 gen/         用 codex 补数据的流水线：任务清单、提示词、验证器、队列
 real_eval/   真实零件上的分布外检验脚本
-docs/        RESULTS.md（结论与局限）、DESIGN_TIERS.md、research_notes.md、program.md、autoresearch.json、各轮 results_*.tsv
+docs/        RESULTS.md（结论与局限）、STEPIR_VERSIONS.md、probes/（codex 逆向诊断）、DESIGN_TIERS.md、research_notes.md、program.md、autoresearch.json、各轮 results_*.tsv
 ```
 
 ## 环境与依赖
 
 - Python 3.12；`SimpleCADAPI` 2.1.4（运行 `cand/` 与评分器）；`OCP`（`cadquery-ocp`）；`numpy`；`tokenizers`（评分器数 token）。
-- 重新生成基准零件需要 SimpleCADAPI **2.2.5**（零件是用它写的）。
+- 重新生成基准零件需要 SimpleCADAPI **2.2.5**（零件是用它写的）；单文件版 `bundle/` 也在 2.2.5 下跑通（cad-code 工作区）。
 - 评分器用 Qwen 的 `tokenizer.json`：`export STEPIR_TOKENIZER=/path/to/tokenizer.json`。
 
 ## 用法
@@ -86,13 +90,26 @@ out["lines"]      # IR 行（表头、面记录、派生行）
 out["face_map"]   # SDK 面下标 → IR id；没有对应记录的 id 是被隐含的棱柱侧面
 ```
 
-派生行格式：
+派生行格式（v6.2）：
 
 ```
-{"derived":"blend","faces":[ir id],"kind":"fillet|chamfer","between":[a,b],"r":半径}   # between 的元素是 IR id，或内联载体
-{"derived":"op","op":"extrude|revolve|helical|loft|sweep","faces":[...]}
+{"derived":"fillet","r":半径,"faces":[...],"between":[[a,b],...],"corners":[...],"on_blend":[...]}   # 一行一次圆角操作
+{"derived":"chamfer","d":退距,"faces":[...],"between":[[a,b],...],"uncertain":[...]}            # between 元素是 IR id 或内联平面
+{"derived":"sharp","face":id,"loops":[...]}                    # 平面在竖直边倒圆前的尖角轮廓
+{"derived":"op","op":"extrude|revolve|helical","faces":[...],...}   # 刚体运动，只列能作证据的面
+{"derived":"op","op":"sweep","faces":[...],"rail":[...],"profile":{...},"frame":"frenet|fixed"}   # 或 "helix":{...}
+{"derived":"op","op":"loft","faces":[...],"sections":[...]}
 {"derived":"freeform","faces":[...]}        # 没有任何刚体运动能扫出的面
 {"derived":"axis","dir":[...],"point":[...],"faces":[...]}
+```
+
+单文件版（给只能复制单个工具文件的 agent 工作区）：
+
+```bash
+python bundle/build_bundle.py --out stepir.py
+python stepir.py part.step                  # 完整 IR（面记录 + 派生行）
+python stepir.py part.step --base           # 只要面记录
+python stepir.py query part.step face 12    # 按需查询，同 cand/stepir_query.py
 ```
 
 ## 复现基准

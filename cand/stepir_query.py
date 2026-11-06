@@ -63,6 +63,12 @@ def face(path, ir_id):
 
 def evidence(path, ir_id):
     import cadfit
+    lines, recs, infos, newid = _load(path)
+    rec = recs.get(ir_id) or {}
+    if rec.get("t") in ("REV", "EXT"):
+        op = "revolve" if rec["t"] == "REV" else "extrude"
+        return {"ir_id": ir_id, "decisive": True, "from_carrier": True, "ops": [{"op": op, **({"axis": rec["d"], "point": rec["p"]} if op == "revolve" else {"dir": rec["d"]})}],
+                "note": "the face is stored as a surface of %s; its motion is exact, no fit needed" % ("revolution" if op == "revolve" else "linear extrusion")}
     part = cadfit.load(str(path))
     if ir_id not in part["rows"]:
         return {"ir_id": ir_id, "note": "no samples for this face"}

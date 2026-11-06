@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Independent checks of bench/data/*/gt_ops.json (different methods from build_gt_ops.py).
 
-  check_gt_ops.py            (run with the SimpleCADAPI 2.1.4 python)
+  check_gt_ops.py            (run with envs/cad214/bin/python)
 
 A. every blend face with plane supports: geometric consistency from SDK-reported carriers only
      chamfer plane : normal lies between the support normals and is parallel to their intersection line

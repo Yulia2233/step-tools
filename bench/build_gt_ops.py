@@ -3,7 +3,7 @@
 
   build_gt_ops.py [--cases case-001 case-002 ...] [--workers 8] [--keep-scratch]
 
-Run with a python that has SimpleCADAPI 2.1.4 + OCP (and set SIMPLECAD_PYTHON for stage 1). For each bench/data/<case>/:
+Run with envs/cad214/bin/python. For each bench/data/<case>/:
   stage 1 (SDK 2.2.5 python, gt_ops_stage1.py): re-run model.py with the creating operations wrapped, dump each call's output
           shape (and the input shape of extrude/fillet/chamfer) as BREP;
   stage 2 (here): load orig.step with the cad214 BRep loader (the face index stepir uses) and match every face to the
@@ -28,7 +28,7 @@ import numpy as np
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent.parent
 DATA = HERE / "data"
-PY225 = Path(os.environ.get("SIMPLECAD_PYTHON", "python3"))      # interpreter with SimpleCADAPI 2.2.5 (the version that wrote the cases)
+PY225 = ROOT / "cad-code" / ".runtime" / "python" / "bin" / "python"
 SCRATCH = Path("/tmp/gt_ops_stage1")
 TOL = 1e-5            # point-to-carrier distance, mm (coordinates are ~30 mm; STEP carries doubles)
 REL = 1e-6            # rebuild-vs-STEP volume / area agreement

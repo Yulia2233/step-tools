@@ -304,7 +304,7 @@ def recognize_edge(model, rec, diag):
 
 # ----------------------------------------------------------------------------------------------------- merging faces
 ANALYTIC_NAMES = (("PLANE", "CYL", "CONE", "SPHERE", "TORUS"))
-FREEFORM_NAMES = (("BSPL", "BEZ", "OTHER"))
+FREEFORM_NAMES = (("BSPL", "BEZ", "OTHER", "REV", "EXT"))
 
 def _par(a, b):
     return 1.0 - abs(float(np.dot(a, b))) <= 1e-8
@@ -582,3 +582,66 @@ def section_congruence(model, index, K=6, M=32):
         err = max(float(np.abs(m - mats[0]).max()) for m in mats[1:]) / max(float(mats[0].max()), 1e-12)
         best = err if best is None else min(best, err)
     return best
+
+
+# ----------------------------------------------------------------------------------------------------- swept carriers
+MAX_GEN_POLES = 24       # longer generators go to the on-demand query, the base IR gets a pole count
+
+
+def _curve_def(c):
+    """Exact B-spline definition of a curve (converted when it is not already a B-spline)."""
+    from OCP.Geom import Geom_BSplineCurve
+    from OCP.GeomConvert import GeomConvert
+    b = c if isinstance(c, Geom_BSplineCurve) else GeomConvert.CurveToBSplineCurve_s(c)
+    poles = np.array([[b.Pole(k).X(), b.Pole(k).Y(), b.Pole(k).Z()] for k in range(1, b.NbPoles() + 1)])
+    out = {"deg": b.Degree(), "knots": [float(b.Knot(k)) for k in range(1, b.NbKnots() + 1)],
+           "mult": [int(b.Multiplicity(k)) for k in range(1, b.NbKnots() + 1)]}
+    if b.IsRational():
+        out["w"] = [float(b.Weight(k)) for k in range(1, b.NbPoles() + 1)]
+    if b.IsPeriodic():
+        out["periodic"] = True
+    return poles, out
+
+
+def swept_carrier(model, index, geometry, diag):
+    """A surface of revolution or of linear extrusion, with its exact generating curve.
+
+    REV: the generator lies in a plane through the axis, so its poles are written as (z, r) in that plane - the very sketch
+    revolve_rsolid needs. EXT: the generator's 3D poles and the extrusion direction. Returns face-info fields or None."""
+    from OCP.BRep import BRep_Tool
+    t = geometry["type"]
+    S = BRep_Tool.Surface_s(_face_of(model, index))
+    if not hasattr(S, "BasisCurve"):
+        return None
+    P, cdef = _curve_def(S.BasisCurve())
+    par = geometry["parameters"]
+    if t == "REVOLUTION":
+        q = np.asarray(par["axis"]["point"], float)
+        a = np.asarray(par["axis"]["direction"], float)
+        a = a / np.linalg.norm(a)
+        v = P - q
+        z = v @ a
+        radial = v - np.outer(z, a)
+        k = int(np.argmax(np.linalg.norm(radial, axis=1)))
+        e = radial[k] / (np.linalg.norm(radial[k]) or 1.0)
+        off = float(np.abs(radial @ np.cross(a, e)).max())
+        out = {"name": "REV", "p": q, "dirv": a, "rad": None, "e": e}
+        span = float(par["u_range"][1] - par["u_range"][0])
+        out["ur"] = (0.0, span)
+        gen = dict(cdef)
+        if off <= 1e-6 * diag:
+            gen["zr"] = [[float(x), float(y)] for x, y in zip(z, radial @ e)]
+        else:
+            gen["poles"] = P.tolist()
+        gen["t"] = [float(par["v_range"][0]), float(par["v_range"][1])]
+        out["gen"] = gen
+        return out
+    if t == "EXTRUSION":
+        dvec = np.asarray(par["direction"], float)
+        dvec = dvec / np.linalg.norm(dvec)
+        gen = dict(cdef)
+        gen["poles"] = P.tolist()
+        gen["t"] = [float(par["u_range"][0]), float(par["u_range"][1])]
+        return {"name": "EXT", "dirv": dvec, "p": P[0], "rad": None, "gen": gen,
+                "ext_v": (float(par["v_range"][0]), float(par["v_range"][1]))}
+    return None

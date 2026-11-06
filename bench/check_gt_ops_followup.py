@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Follow-up independent checks for gt_ops.json (run with python; appends to data/GT_OPS_REPORT.md).
+"""Follow-up independent checks for gt_ops.json (run with envs/cad214/bin/python; appends to data/GT_OPS_REPORT.md).
 
  1. targeted 8-case sample covering fillet, chamfer, loft, twisted_sweep, gordon, spline_extrude, revolve cone/torus (+ sweep):
     item-level verdicts. Spline/revolve faces: sample points vs the TRIMMED output face of the attributed operation
