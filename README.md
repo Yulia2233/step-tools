@@ -64,7 +64,7 @@ docs/        RESULTS.md（结论与局限）、STEPIR_VERSIONS.md、probes/（co
 
 ## 环境与依赖
 
-- Python 3.12；`SimpleCADAPI` 2.1.4（运行 `cand/` 与评分器）；`OCP`（`cadquery-ocp`）；`numpy`；`tokenizers`（评分器数 token）。
+- Python 3.12；`SimpleCADAPI` 2.1.4–2.2.7（运行 `cand/` 与评分器；2.2.7 需装 `simplecadapi[verify]` 以提供 OCP）；`OCP`（`cadquery-ocp`）；`numpy`；`tokenizers`（评分器数 token）。
 - 重新生成基准零件需要 SimpleCADAPI **2.2.5**（零件是用它写的）；单文件版 `bundle/` 也在 2.2.5 下跑通（cad-code 工作区）。
 - 评分器用 Qwen 的 `tokenizer.json`：`export STEPIR_TOKENIZER=/path/to/tokenizer.json`。
 

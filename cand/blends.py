@@ -16,6 +16,7 @@ import math
 import numpy as np
 
 import geomnorm
+import sdk_ocp
 
 ANG_TOL = 1.0            # degrees: "parallel", "perpendicular", "coaxial"
 MAX_ARC = math.radians(170.0)
@@ -65,7 +66,7 @@ def tangent_length(model, ma, mb, cache):
                 eb = set(model.describe_entity(f"face:{b}")["adjacency"]["edges"])
                 length = 0.0
                 for eid in sorted(ea & eb):
-                    e = model.resolve_entity(eid)
+                    e = sdk_ocp.resolve(model, eid)
                     c = BRepAdaptor_Curve(TopoDS.Edge_s(e[-1] if isinstance(e, tuple) else e))
                     fa, fb = geomnorm._face_of(model, a), geomnorm._face_of(model, b)
                     ok = True
@@ -113,7 +114,7 @@ def _edge_points_between(model, ma, mb, n=7):
         ea = set(model.describe_entity(f"face:{a}")["adjacency"]["edges"])
         for b in mb:
             for eid in sorted(ea & set(model.describe_entity(f"face:{b}")["adjacency"]["edges"])):
-                e = model.resolve_entity(eid)
+                e = sdk_ocp.resolve(model, eid)
                 c = BRepAdaptor_Curve(TopoDS.Edge_s(e[-1] if isinstance(e, tuple) else e))
                 pts += [[c.Value(t).X(), c.Value(t).Y(), c.Value(t).Z()] for t in np.linspace(c.FirstParameter(), c.LastParameter(), n)]
     return np.asarray(pts)

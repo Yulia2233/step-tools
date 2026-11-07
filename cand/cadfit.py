@@ -32,6 +32,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import cadthreads  # noqa: E402
+import sdk_ocp  # noqa: E402
 cadthreads.limit()
 import numpy as np  # noqa: E402
 
@@ -161,7 +162,7 @@ def load(path):
             r = json.loads(ln)
             types[r["id"]] = r["t"]
     per = {}
-    for i, face in enumerate(model.faces):
+    for i, face in enumerate(sdk_ocp.faces(model)):
         if i not in fmap:
             continue
         s = samples(face, max(scale * 1e-4, 1e-6))

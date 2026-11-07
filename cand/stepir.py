@@ -63,7 +63,7 @@ def canon_frame(n):
 
 def reversed_face(model, index):
     """True when the face is stored reversed (its outward normal opposes the carrier normal => concave carrier)."""
-    return model.faces[index].Orientation().name.endswith("REVERSED")
+    return geomnorm._face_of(model, index).Orientation().name.endswith("REVERSED")
 
 
 SURF = {"PLANE": "PLANE", "CYLINDER": "CYL", "CONE": "CONE", "SPHERE": "SPHERE", "TORUS": "TORUS",

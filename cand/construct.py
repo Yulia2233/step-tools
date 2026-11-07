@@ -17,6 +17,7 @@ import math
 import numpy as np
 
 import geomnorm
+import sdk_ocp
 
 K_RAIL = 13           # rail stations
 M_SEC = 48            # samples per iso-curve
@@ -455,7 +456,7 @@ def _shared_edge_points(model, a, b, n=9):
     eb = set(model.describe_entity(f"face:{b}")["adjacency"]["edges"])
     out = []
     for eid in sorted(ea & eb):
-        e = model.resolve_entity(eid)
+        e = sdk_ocp.resolve(model, eid)
         c = BRepAdaptor_Curve(TopoDS.Edge_s(e[-1] if isinstance(e, tuple) else e))
         out += [[c.Value(t).X(), c.Value(t).Y(), c.Value(t).Z()] for t in np.linspace(c.FirstParameter(), c.LastParameter(), n)]
     return np.asarray(out)

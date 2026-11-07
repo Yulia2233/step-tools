@@ -14,15 +14,14 @@ import math
 import numpy as np
 
 import cadthreads  # noqa: F401  (bounds the kernel thread pool)
+import sdk_ocp
 
 TOL_REL = 1e-5          # max distance of any sample to the fitted carrier, relative to the bbox diagonal
 AXIS_TOL = 2.0e-3       # twist-residual threshold of cadfit: a revolution axis exists when the normals meet one line
 
 
 def _face_of(model, index):
-    from OCP.TopoDS import TopoDS
-    f = model.resolve_entity(f"face:{index}")
-    return TopoDS.Face_s(f[-1] if isinstance(f, tuple) else f)
+    return sdk_ocp.face(model, index)
 
 
 def samples(face, diag, want=8):
@@ -269,7 +268,7 @@ def recognize_edge(model, rec, diag):
     of this occurrence runs counter-clockwise about it. None when the edge is a genuine curve."""
     from OCP.BRepAdaptor import BRepAdaptor_Curve
     from OCP.TopoDS import TopoDS
-    e = model.resolve_entity(rec["entity_id"])
+    e = sdk_ocp.resolve(model, rec["entity_id"])
     c = BRepAdaptor_Curve(TopoDS.Edge_s(e[-1] if isinstance(e, tuple) else e))
     ts = np.linspace(c.FirstParameter(), c.LastParameter(), 17)
     pts = np.array([[q.X(), q.Y(), q.Z()] for q in (c.Value(float(t)) for t in ts)])
@@ -354,7 +353,7 @@ def same_carrier(a, b, diag):
 def _edge_points(model, rec, n=9):
     from OCP.BRepAdaptor import BRepAdaptor_Curve
     from OCP.TopoDS import TopoDS
-    e = model.resolve_entity(rec["entity_id"])
+    e = sdk_ocp.resolve(model, rec["entity_id"])
     c = BRepAdaptor_Curve(TopoDS.Edge_s(e[-1] if isinstance(e, tuple) else e))
     return np.array([[q.X(), q.Y(), q.Z()] for q in (c.Value(float(t)) for t in np.linspace(c.FirstParameter(), c.LastParameter(), n))])
 
@@ -502,7 +501,7 @@ def smooth_across(model, a, b, diag):
         return False
     fa, fb = _face_of(model, a), _face_of(model, b)
     for eid in shared:
-        e = model.resolve_entity(eid)
+        e = sdk_ocp.resolve(model, eid)
         c = BRepAdaptor_Curve(TopoDS.Edge_s(e[-1] if isinstance(e, tuple) else e))
         for t in np.linspace(c.FirstParameter(), c.LastParameter(), 7)[1:-1]:
             q = c.Value(float(t))

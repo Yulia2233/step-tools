@@ -15,8 +15,8 @@ import subprocess
 from pathlib import Path
 
 CAND = Path(__file__).resolve().parents[1] / "cand"
-ORDER = ["cadthreads", "geomnorm", "_stepir_core", "construct", "blends", "cadfit", "stepir_ops", "stepir_query"]
-FILES = {"cadthreads": "cadthreads.py", "geomnorm": "geomnorm.py", "_stepir_core": "stepir.py", "construct": "construct.py",
+ORDER = ["cadthreads", "sdk_ocp", "geomnorm", "_stepir_core", "construct", "blends", "cadfit", "stepir_ops", "stepir_query"]
+FILES = {"cadthreads": "cadthreads.py", "sdk_ocp": "sdk_ocp.py", "geomnorm": "geomnorm.py", "_stepir_core": "stepir.py", "construct": "construct.py",
          "blends": "blends.py", "cadfit": "cadfit.py", "stepir_ops": "stepir_ops.py", "stepir_query": "stepir_query.py"}
 
 HEAD = '''#!/usr/bin/env python3
