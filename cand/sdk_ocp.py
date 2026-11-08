@@ -56,6 +56,18 @@ def face(model, index):
     return _maps(model)["face"][index]
 
 
+def surface(face_shape):
+    """The carrier of an OCP face with any RectangularTrimmedSurface wrapper removed. A STEP reader or a binary round trip
+    may wrap a surface of revolution or a B-spline in one; the wrapper hides the real type and its methods (BasisCurve,
+    NbUPoles, ...), so type tests on the raw handle miss them."""
+    from OCP.BRep import BRep_Tool
+    from OCP.Geom import Geom_RectangularTrimmedSurface
+    S = BRep_Tool.Surface_s(face_shape)
+    while isinstance(S, Geom_RectangularTrimmedSurface):
+        S = S.BasisSurface()
+    return S
+
+
 def resolve(model, entity_id):
     """`model.resolve_entity` with an OCP shape: (kind, index, shape)."""
     kind, index = entity_id.split(":")

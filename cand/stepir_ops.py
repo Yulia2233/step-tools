@@ -186,7 +186,8 @@ def _chain_meridian(segs, rel=2e-3):
 
 
 def carrier_ops(by_ir):
-    """Surfaces of revolution / extrusion carry their motion in the carrier itself: no fit needed, and none is trusted."""
+    """Surfaces of revolution / extrusion carry their motion in the carrier itself: no fit needed, and none is trusted.
+    Implied walls (prism / loop-prism sides) are not listed: their extrusion is the prism itself."""
     groups = {}
     for i, r in sorted(by_ir.items()):
         if r.get("t") == "REV":
@@ -267,7 +268,7 @@ def analyse(path, with_fit=False, lines=None):
     out = {"part": Path(path).name, "n_faces": head["counts"]["face"], "types": head.get("types", {}),
            "scale": round(scale, 4), "blends": blends_out,
            "blend_faces": len(blend_ids),
-           "axes": axes}
+           "axes": axes, "relief": list(getattr(stepir.build_ir, "last_relief", []))}
     if with_fit:
         # Which operation swept which face - asked only of the faces where the question has an answer. A plane is swept
         # by a three-parameter family of motions, so it agrees with almost any claim; a fillet face was not swept by the
@@ -320,8 +321,8 @@ def _line_x(p1, p2, q1, q2):
 
 
 def _seg_end(sg):
-    """End point of a loop segment: ["L",x,y] | ["A",cx,cy,x,y,s] | ["E",cx,cy,a,b,ux,uy,x,y,s] | ["S",deg,x,y,[mx,my]]."""
-    return list(sg[{"L": 1, "A": 3, "E": 7, "S": 2}.get(sg[0], 1):][:2])
+    import stepir
+    return stepir.seg_end(sg)
 
 
 def sharp_loops(rec, cyls):
@@ -443,6 +444,8 @@ def augment(lines, facts):
     if facts.get("freeform"):
         extra.append(json.dumps({"derived": "freeform", "faces": facts["freeform"]},
                                 separators=(",", ":"), ensure_ascii=False))
+    for g in facts.get("relief", []):
+        extra.append(json.dumps({"derived": "relief", **g}, separators=(",", ":")))
     for ax in facts["axes"]:
         extra.append(json.dumps({"derived": "axis", "dir": ax["dir"], "point": ax["point"], "faces": ax["faces"]},
                                 separators=(",", ":"), ensure_ascii=False))

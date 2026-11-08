@@ -564,7 +564,7 @@ def section_congruence(model, index, K=6, M=32):
     a B-spline surface); ~1e-6 for a sweep, 1e-2 and up for a loft."""
     from OCP.BRep import BRep_Tool
     from OCP.Geom import Geom_BSplineSurface
-    S = BRep_Tool.Surface_s(_face_of(model, index))
+    S = sdk_ocp.surface(_face_of(model, index))
     if not isinstance(S, Geom_BSplineSurface):
         return None
     u1, u2, v1, v2 = S.Bounds()
@@ -609,7 +609,7 @@ def swept_carrier(model, index, geometry, diag):
     revolve_rsolid needs. EXT: the generator's 3D poles and the extrusion direction. Returns face-info fields or None."""
     from OCP.BRep import BRep_Tool
     t = geometry["type"]
-    S = BRep_Tool.Surface_s(_face_of(model, index))
+    S = sdk_ocp.surface(_face_of(model, index))
     if not hasattr(S, "BasisCurve"):
         return None
     P, cdef = _curve_def(S.BasisCurve())
@@ -644,3 +644,82 @@ def swept_carrier(model, index, geometry, diag):
         return {"name": "EXT", "dirv": dvec, "p": P[0], "rad": None, "gen": gen,
                 "ext_v": (float(par["v_range"][0]), float(par["v_range"][1]))}
     return None
+
+
+def ruled_extrusion(model, index, geometry, diag):
+    """A B-spline face that is a straight extrusion of one curve: degree 1 with two pole rows in one parameter direction,
+    the second row the first moved by one constant vector, equal weights. That is exactly a surface of linear extrusion
+    (text and logo walls extruded from spline outlines are stored this way), so it gets the same EXT fields as
+    swept_carrier: the exact generating curve, the direction, and the extrusion range. Returns face-info fields or None."""
+    from OCP.Geom import Geom_BSplineSurface
+    S = sdk_ocp.surface(_face_of(model, index))
+    if not isinstance(S, Geom_BSplineSurface):
+        return None
+    nu, nv = S.NbUPoles(), S.NbVPoles()
+    P = np.array([[[S.Pole(i, j).X(), S.Pole(i, j).Y(), S.Pole(i, j).Z()] for j in range(1, nv + 1)] for i in range(1, nu + 1)])
+    W = np.array([[S.Weight(i, j) for j in range(1, nv + 1)] for i in range(1, nu + 1)])
+    par = geometry["parameters"]
+    for lin in ("v", "u"):
+        if lin == "v":
+            if S.VDegree() != 1 or nv != 2 or S.IsVPeriodic():
+                continue
+            rows, w = (P[:, 0], P[:, 1]), (W[:, 0], W[:, 1])
+            deg, periodic = S.UDegree(), S.IsUPeriodic()
+            knots = [(float(S.UKnot(k)), int(S.UMultiplicity(k))) for k in range(1, S.NbUKnots() + 1)]
+            a0, a1 = float(S.VKnot(1)), float(S.VKnot(S.NbVKnots()))
+            crange, lrange = par["u_range"], par["v_range"]
+        else:
+            if S.UDegree() != 1 or nu != 2 or S.IsUPeriodic():
+                continue
+            rows, w = (P[0], P[1]), (W[0], W[1])
+            deg, periodic = S.VDegree(), S.IsVPeriodic()
+            knots = [(float(S.VKnot(k)), int(S.VMultiplicity(k))) for k in range(1, S.NbVKnots() + 1)]
+            a0, a1 = float(S.UKnot(1)), float(S.UKnot(S.NbUKnots()))
+            crange, lrange = par["v_range"], par["u_range"]
+        T = rows[1] - rows[0]
+        t = T.mean(0)
+        L = float(np.linalg.norm(t))
+        if L <= 1e-7 * diag or float(np.abs(T - t).max()) > TOL_REL * diag or float(np.abs(w[0] - w[1]).max()) > 1e-9:
+            continue
+        s = lambda x: (float(x) - a0) / (a1 - a0) * L
+        gen = {"deg": deg, "knots": [k for k, _ in knots], "mult": [m for _, m in knots], "poles": rows[0].tolist(),
+               "t": [float(crange[0]), float(crange[1])]}
+        if float(np.abs(w[0] - 1.0).max()) > 1e-12:
+            gen["w"] = [float(x) for x in w[0]]
+        if periodic:
+            gen["periodic"] = True
+        return {"name": "EXT", "dirv": t / L, "p": rows[0][0], "rad": None, "gen": gen, "ext_v": (s(lrange[0]), s(lrange[1]))}
+    return None
+
+
+MAX_SEG_POLES = 64       # planar loop splines with more poles stay in the short ["S", ...] form only (exact net: stepir_query face)
+
+
+def edge_bspline(model, rec):
+    """Exact B-spline of an edge occurrence, oriented from its start to its end: (poles Nx3, deg, knots normalised to
+    [0, 1], mult, weights or None), or None when it has more than MAX_SEG_POLES poles."""
+    from OCP.BRep import BRep_Tool
+    from OCP.Geom import Geom_BSplineCurve, Geom_TrimmedCurve
+    from OCP.GeomConvert import GeomConvert
+    _, _, e = sdk_ocp.resolve(model, rec["entity_id"])
+    from OCP.BRepAdaptor import BRepAdaptor_Curve
+    c = BRep_Tool.Curve_s(e, 0.0, 0.0)         # with the edge's location applied
+    if c is None:
+        return None
+    ad = BRepAdaptor_Curve(e)
+    f, l = ad.FirstParameter(), ad.LastParameter()
+    b = c if isinstance(c, Geom_BSplineCurve) and not c.IsPeriodic() and abs(c.FirstParameter() - f) < 1e-12 \
+        and abs(c.LastParameter() - l) < 1e-12 else GeomConvert.CurveToBSplineCurve_s(Geom_TrimmedCurve(c, f, l))
+    n = b.NbPoles()
+    if n > MAX_SEG_POLES:
+        return None
+    P = np.array([[b.Pole(k).X(), b.Pole(k).Y(), b.Pole(k).Z()] for k in range(1, n + 1)])
+    w = np.array([b.Weight(k) for k in range(1, n + 1)]) if b.IsRational() else None
+    kn = np.array([b.Knot(k) for k in range(1, b.NbKnots() + 1)], float)
+    mu = [int(b.Multiplicity(k)) for k in range(1, b.NbKnots() + 1)]
+    kn = (kn - kn[0]) / ((kn[-1] - kn[0]) or 1.0)
+    start = np.asarray(rec["start"], float)
+    if float(np.linalg.norm(P[-1] - start)) < float(np.linalg.norm(P[0] - start)):     # reversed occurrence
+        P, kn, mu = P[::-1], (1.0 - kn)[::-1], mu[::-1]
+        w = w[::-1] if w is not None else None
+    return P, b.Degree(), kn.tolist(), mu, (w.tolist() if w is not None else None)

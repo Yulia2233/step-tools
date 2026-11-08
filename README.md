@@ -38,6 +38,8 @@ ABC 零件本身不随仓库分发（许可原因），见下文"复现"。
 
 **当前版本 v6.2**（2026-11-06）：在 v6 之上按两轮 codex 逆向诊断修正了会误导模型的输出（圆锥写法、回转/拉伸曲面的精确母线、棱柱误判），给自由曲面加了构造参数（扫掠的轨道/截面/标架、螺旋、放样截面），倒角圆角改为一行一次操作。合成基准 SCORE 0.926 → 0.9301；见 [docs/RESULTS.md](docs/RESULTS.md) 末两节，诊断记录在 [docs/probes/](docs/probes/)。
 
+**当前版本 v6.3**（2026-11-08）：刻字、标志、齿形这类"样条轮廓拉伸"不再逐片列侧壁——两个平行平面上同一轮廓之间的直壁省略（环棱柱 `prism`/`same`），环里的样条段写成精确极点 `["B",...]`，直纹拉伸的 B 样条面认作 `EXT`，浅浮雕/刻字/贴印给 `relief` 行；修复了被裁剪曲面包装的回转/拉伸面（`query face` 崩溃）。104 个真实件（new-data-1106 随机 80 件 + 刻字/齿轮件，对比可完成的 101 件）IR 总 token −21%（中位 −8%，刻字件常减半），被省略的面 460 → 7397，逐面核验 7674/7674 通过；合成基准 SCORE 0.9301 → 0.9267（只因冻结评分器无法给被省略的面记来源分，见 [docs/RESULTS.md](docs/RESULTS.md) v6.3 一节），token 比 0.892 → 0.806。被省略的面用 `tools/verify_implied.py` 逐面独立核验。
+
 **各版本 STEPIR 的演进与最新版的详细原理**见 [docs/STEPIR_VERSIONS.md](docs/STEPIR_VERSIONS.md)。
 
 ## 做了什么
@@ -59,6 +61,8 @@ bench/       评分器 eval_geom.py、变体与真值生成脚本、各零件的
              construct_gt/（扫掠/放样的构造真值）、eval_construct.py、eval_rebuild.py（只用 IR 参数重建曲面并量误差）
 gen/         用 codex 补数据的流水线：任务清单、提示词、验证器、队列
 real_eval/   真实零件上的分布外检验脚本
+tools/       verify_implied.py（逐面核验被省略的面落在 IR 打印的扫掠上）、cmp_run.py / cmp_one.py / cmp_tokens.py
+             （两版 STEPIR 在真实件上的大小、省略面、relief 与 token 对比；cmp_parts.txt 为 v6.3 用的 104 件清单）
 docs/        RESULTS.md（结论与局限）、STEPIR_VERSIONS.md、probes/（codex 逆向诊断）、DESIGN_TIERS.md、research_notes.md、program.md、autoresearch.json、各轮 results_*.tsv
 ```
 
@@ -90,7 +94,7 @@ out["lines"]      # IR 行（表头、面记录、派生行）
 out["face_map"]   # SDK 面下标 → IR id；没有对应记录的 id 是被隐含的棱柱侧面
 ```
 
-派生行格式（v6.2）：
+派生行格式（v6.3）：
 
 ```
 {"derived":"fillet","r":半径,"faces":[...],"between":[[a,b],...],"corners":[...],"on_blend":[...]}   # 一行一次圆角操作
@@ -101,7 +105,10 @@ out["face_map"]   # SDK 面下标 → IR id；没有对应记录的 id 是被隐
 {"derived":"op","op":"loft","faces":[...],"sections":[...]}
 {"derived":"freeform","faces":[...]}        # 没有任何刚体运动能扫出的面
 {"derived":"axis","dir":[...],"point":[...],"faces":[...]}
+{"derived":"relief","kind":"emboss|engrave|imprint","on":id,"h":深度,"faces":[...],"walls":N,"loops":N}   # 浅浮雕/刻字/贴印
 ```
+
+平面记录另有 `"prism":[[环号, 对方id, dz]]`（该环沿法向扫 dz 到对方面，侧壁省略；对方的环写 `{"same":[id,环号]}`）；环段 `["B",次数,[极点...],{"k","m","w"}]` 是精确 B 样条。
 
 单文件版（给只能复制单个工具文件的 agent 工作区）：
 

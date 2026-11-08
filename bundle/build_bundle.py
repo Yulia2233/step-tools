@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Bundle STEPIR v6.2 (stepir_geom/cand, several modules) into ONE file, because a cad-code workspace copies a fixed list
+"""Bundle STEPIR (stepir_geom/cand, several modules) into ONE file, because a cad-code workspace copies a fixed list
 of single tool files (src/workspace.mjs TOOL_FILES) and stepir.py is one of them.
 
   python3 build_bundle.py --out <path>/stepir.py
@@ -15,18 +15,19 @@ import subprocess
 from pathlib import Path
 
 CAND = Path(__file__).resolve().parents[1] / "cand"
+VERSION = "v6.3"
 ORDER = ["cadthreads", "sdk_ocp", "geomnorm", "_stepir_core", "construct", "blends", "cadfit", "stepir_ops", "stepir_query"]
 FILES = {"cadthreads": "cadthreads.py", "sdk_ocp": "sdk_ocp.py", "geomnorm": "geomnorm.py", "_stepir_core": "stepir.py", "construct": "construct.py",
          "blends": "blends.py", "cadfit": "cadfit.py", "stepir_ops": "stepir_ops.py", "stepir_query": "stepir_query.py"}
 
 HEAD = '''#!/usr/bin/env python3
-"""STEPIR v6.2 - STEP -> compact B-rep description for writing SimpleCADAPI code (single-file bundle).
+"""STEPIR {version} - STEP -> compact B-rep description for writing SimpleCADAPI code (single-file bundle).
 
   python stepir.py part.step                full IR: one JSON object per line - header, face records, derived lines
   python stepir.py part.step --base         face records only (no derived lines)
   python stepir.py query part.step face <id> | evidence <id> | axis | neighbours <id>   on-demand detail
 
-Bundled from stepir_geom/cand @ {commit} ({n} modules). Format reference: docs/STEPIR_VERSIONS.md of step-tools.
+Bundled from stepir_geom/cand @ {commit} ({n} modules). Format reference: docs/STEPIR_VERSIONS.md of step-tools (references/inspect/stepir.md of the simplecadapi skill).
 """
 import os as _os
 import sys as _sys
@@ -65,7 +66,7 @@ def main(argv=None):
         _sys.argv = ["stepir_query.py"] + argv[1:]
         return stepir_query.main()
     import argparse
-    ap = argparse.ArgumentParser(description="STEPIR v6.2")
+    ap = argparse.ArgumentParser(description="STEPIR {version}")
     ap.add_argument("step")
     ap.add_argument("--base", action="store_true", help="face records only, no derived lines")
     ap.add_argument("--out")
@@ -86,6 +87,7 @@ if __name__ == "__main__":
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", required=True)
+    ap.add_argument("--version", default=VERSION)
     a = ap.parse_args()
     srcs = {}
     for name in ORDER:
@@ -96,7 +98,7 @@ def main():
         srcs[name] = s
     commit = subprocess.run(["git", "-C", str(CAND.parent), "rev-parse", "--short", "HEAD"], capture_output=True, text=True).stdout.strip()
     body = "{\n" + "".join(f"    {k!r}: {v!r},\n" for k, v in srcs.items()) + "}"
-    out = HEAD.format(commit=commit, n=len(ORDER), sources=body, order=ORDER)
+    out = HEAD.format(commit=commit, n=len(ORDER), sources=body, order=ORDER, version=a.version)
     Path(a.out).write_text(out)
     print(a.out, len(out), "bytes, sha256", hashlib.sha256(out.encode()).hexdigest()[:12], "from", commit)
 

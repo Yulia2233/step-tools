@@ -32,32 +32,78 @@ def _load(path):
     return lines, recs, stepir.build_ir.last_infos, stepir.build_ir.last_newid
 
 
+def _net(B):
+    nu, nv = B.NbUPoles(), B.NbVPoles()
+    rational = bool(B.IsURational() or B.IsVRational())
+    return {"degree": [B.UDegree(), B.VDegree()], "rational": rational,
+            "control_points": [[[round(B.Pole(i, j).X(), 4), round(B.Pole(i, j).Y(), 4), round(B.Pole(i, j).Z(), 4)]
+                                for j in range(1, nv + 1)] for i in range(1, nu + 1)],
+            "weights": [[round(B.Weight(i, j), 6) for j in range(1, nv + 1)] for i in range(1, nu + 1)] if rational else None,
+            "u_knots": [[round(B.UKnot(k), 6), B.UMultiplicity(k)] for k in range(1, B.NbUKnots() + 1)],
+            "v_knots": [[round(B.VKnot(k), 6), B.VMultiplicity(k)] for k in range(1, B.NbVKnots() + 1)]}
+
+
+def _curve(c):
+    P, cdef = geomnorm._curve_def(c)
+    out = {"degree": cdef["deg"], "poles": [[round(float(x), 4) for x in p] for p in P],
+           "knots": [[round(k, 6), m] for k, m in zip(cdef["knots"], cdef["mult"])]}
+    if "w" in cdef:
+        out["weights"] = [round(x, 6) for x in cdef["w"]]
+    if cdef.get("periodic"):
+        out["periodic"] = True
+    return out
+
+
+def carrier(S):
+    """Exact description of a non-analytic carrier: a B-spline's control net; a surface of revolution / linear extrusion
+    as its axis or direction plus the exact generating curve; an offset surface as the offset plus its basis; anything
+    else converted to a B-spline net (marked converted)."""
+    from OCP.Geom import (Geom_BSplineSurface, Geom_OffsetSurface, Geom_RectangularTrimmedSurface,
+                          Geom_SurfaceOfLinearExtrusion, Geom_SurfaceOfRevolution)
+    from OCP.GeomConvert import GeomConvert
+    while isinstance(S, Geom_RectangularTrimmedSurface):
+        S = S.BasisSurface()
+    if isinstance(S, Geom_BSplineSurface):
+        return {"type": "bspline", **_net(S)}
+    if isinstance(S, Geom_SurfaceOfRevolution):
+        ax = S.Axis()
+        return {"type": "revolution", "axis": [round(ax.Direction().X(), 6), round(ax.Direction().Y(), 6), round(ax.Direction().Z(), 6)],
+                "point": [round(ax.Location().X(), 4), round(ax.Location().Y(), 4), round(ax.Location().Z(), 4)],
+                "generator": _curve(S.BasisCurve())}
+    if isinstance(S, Geom_SurfaceOfLinearExtrusion):
+        d = S.Direction()
+        return {"type": "extrusion", "direction": [round(d.X(), 6), round(d.Y(), 6), round(d.Z(), 6)],
+                "generator": _curve(S.BasisCurve())}
+    if isinstance(S, Geom_OffsetSurface):
+        return {"type": "offset", "offset": round(S.Offset(), 6), "basis": carrier(S.BasisSurface())}
+    try:
+        return {"type": type(S).__name__, "converted": True, **_net(GeomConvert.SurfaceToBSplineSurface_s(S))}
+    except Exception as e:  # noqa: BLE001 - say what the carrier is even when it cannot be converted
+        return {"type": type(S).__name__, "error": f"{type(e).__name__}: {str(e)[:120]}"}
+
+
 def face(path, ir_id):
-    from OCP.BRep import BRep_Tool
-    from OCP.Geom import Geom_BSplineSurface
+    import sdk_ocp
     from simplecadapi.inspect import brep
     lines, recs, infos, newid = _load(path)
     members = [k for k, v in newid.items() if v == ir_id]
     out = {"ir_id": ir_id, "record": recs.get(ir_id), "sdk_faces": members}
-    rep = next((k for k in members if "dead" not in infos[k]), members[0] if members else None)
-    if rep is not None and infos[rep]["name"] in ("BSPL", "BEZ", "OTHER"):
+    if not members:
+        out["note"] = "no face has this IR id"
+        return out
+    rep = next((k for k in members if "dead" not in infos[k]), members[0])
+    if out["record"] is None:
+        out["note"] = "implied face (no record of its own): a prism or loop-prism wall, rebuilt from the loop it sweeps"
+        inf = infos[rep]
+        if inf["name"] == "PLANE":
+            out["carrier"] = {"t": "PLANE", "o": [round(float(c), 4) for c in inf["o"]], "n": [round(float(c), 6) for c in inf["n"]]}
+        elif inf["name"] == "CYL":
+            out["carrier"] = {"t": "CYL", "p": [round(float(c), 4) for c in inf["p"]], "d": [round(float(c), 6) for c in inf["dirv"]],
+                              "r": round(float(inf["rad"]), 4)}
+    if infos[rep]["name"] in ("BSPL", "BEZ", "OTHER", "REV", "EXT") or out["record"] is None:
         model = brep.load_step_rbrepmodel(path=str(path))
-        carriers = []
-        for m in members:
-            S = BRep_Tool.Surface_s(geomnorm._face_of(model, m))
-            B = S if isinstance(S, Geom_BSplineSurface) else getattr(S, "BasisSurface", lambda: None)()
-            if B is None:
-                carriers.append({"type": type(S).__name__})
-                continue
-            nu, nv = B.NbUPoles(), B.NbVPoles()
-            carriers.append({
-                "sdk_face": m, "degree": [B.UDegree(), B.VDegree()], "rational": bool(B.IsURational() or B.IsVRational()),
-                "control_points": [[[round(B.Pole(i, j).X(), 4), round(B.Pole(i, j).Y(), 4), round(B.Pole(i, j).Z(), 4)]
-                                    for j in range(1, nv + 1)] for i in range(1, nu + 1)],
-                "weights": [[round(B.Weight(i, j), 6) for j in range(1, nv + 1)] for i in range(1, nu + 1)] if B.IsURational() or B.IsVRational() else None,
-                "u_knots": [[round(B.UKnot(k), 6), B.UMultiplicity(k)] for k in range(1, B.NbUKnots() + 1)],
-                "v_knots": [[round(B.VKnot(k), 6), B.VMultiplicity(k)] for k in range(1, B.NbVKnots() + 1)]})
-        out["spline_carriers"] = carriers
+        out["spline_carriers"] = [{"sdk_face": m, **carrier(sdk_ocp.surface(sdk_ocp.face(model, m)))} for m in members
+                                  if infos[m]["name"] not in ("PLANE", "CYL", "CONE", "SPHERE", "TORUS")]
     return out
 
 

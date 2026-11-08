@@ -121,9 +121,52 @@ def edge_seg(model, rec, frame):
             u = [float(xdir @ frame.x), float(xdir @ frame.y)]
             return P(start), ["E"] + P(cen) + [r(par["major_radius"]), r(par["minor_radius"]), r(u[0], 4), r(u[1], 4)] + P(end) + [s], None
         return P(start), ["E"] + P(cen) + [r(par["major_radius"]), r(par["minor_radius"])] + P(end) + [sense_axis], None
+    if frame:                                   # a planar loop spline: its exact poles when there are few
+        bs = geomnorm.edge_bspline(model, rec)
+        if bs is not None:
+            poles, deg, kn, mu, w = bs
+            seg = ["B", deg, [P(q) for q in poles[1:]]]
+            opt = {}
+            if len(kn) > 2:
+                opt.update(k=[r(x, 6) for x in kn], m=mu)
+            if w is not None:
+                opt["w"] = [r(x, 6) for x in w]
+            if opt:
+                seg.append(opt)
+            cen = ed.get("centroid", rec["start"])
+            return P(start), ["S", par.get("degree", 0) if isinstance(par, dict) else 0] + P(end) + [P(cen), {"exact": seg}], None
     cen = ed.get("centroid", rec["start"])
     deg = par.get("degree", 0) if isinstance(par, dict) else 0
     return P(start), ["S", deg] + P(end) + [P(cen)], None
+
+
+def settle_splines(loops, exact):
+    """Planar loop splines carry their exact form until it is known whether it is needed: written as ["B", ...] in the
+    loops whose index is in `exact` (their walls are implied, so the loop must say everything) or when it costs no more
+    than the short form
+    (a Bezier of at most 4 poles, about the size of ["S", ...]); otherwise the short ["S", ...] form stays."""
+    out = []
+    for i, lp in enumerate(loops):
+        if "e" not in lp or not any(len(sg) == 6 and sg[0] == "S" for sg in lp["e"]):
+            out.append(lp)
+            continue
+        e = []
+        for sg in lp["e"]:
+            if sg[0] == "S" and len(sg) == 6:
+                b = sg[5]["exact"]
+                e.append(b if i in exact or (len(b) == 3 and len(b[2]) <= 3) else sg[:5])
+            else:
+                e.append(sg)
+        out.append({**lp, "e": e})
+    return out
+
+
+def seg_end(sg):
+    """End point of a loop segment: ["L",x,y] | ["A",cx,cy,x,y,s] | ["E",cx,cy,a,b,ux,uy,x,y,s] | ["S",deg,x,y,[mx,my]] |
+    ["B",deg,[[x,y],...]] (exact B-spline: poles after the start, the last one is the end)."""
+    if sg[0] == "B":
+        return list(sg[2][-1])
+    return list(sg[{"L": 1, "A": 3, "E": 7, "S": 2}.get(sg[0], 1):][:2])
 
 
 def coalesce(start, segs):
@@ -176,7 +219,7 @@ def loop_points(loops, fr):
             continue
         out.append(world(lp["s"]))
         for sg in lp["e"]:
-            out.append(world(sg[1:3] if sg[0] == "L" else sg[3:5] if sg[0] == "A" else sg[2:4] if sg[0] == "S" else sg[7:9]))
+            out.append(world(seg_end(sg)))
     return out
 
 
@@ -244,19 +287,42 @@ def _cap_segments(cap, loops):
             elif sg[0] == "A":
                 arcs.append((world(sg[1:3]), float(np.linalg.norm(np.asarray(sg[1:3], float) - np.asarray(cur, float)))))
                 cur = sg[3:5]
-            elif sg[0] == "S":
-                cur = sg[2:4]
-            elif sg[0] == "E":
-                cur = sg[7:9]
+            else:
+                cur = seg_end(sg)
     return lines, arcs
 
 
-def _swept(face, cap, lines, arcs):
+def _band(loops):
+    """A planar face bounded by straight lines only (one loop): what the sweep of a straight edge looks like."""
+    return bool(loops) and len(loops) == 1 and "e" in loops[0] and all(sg[0] == "L" for sg in loops[0]["e"])
+
+
+def _swept(face, cap, lines, arcs, face_loops=None):
     """True when the lateral face is the sweep of one of the cap's loop edges (so the IR can drop it)."""
     tol = TOL * max(1.0, float(np.max(np.abs(cap["o"]))))
     if face["name"] == "PLANE":
-        n, o = face["n"], face["o"]
-        return any(abs(float(n @ (p0 - o))) <= tol and abs(float(n @ (p1 - o))) <= tol for p0, p1 in lines)
+        if face_loops is not None and not _band(face_loops):
+            return False                                   # an arc or a hole in it: not the band swept from one edge
+        # the plane must contain a cap edge AND the face must be the band swept from it: every boundary point, moved along
+        # the cap normal into the cap plane, lies on that edge (a coplanar face of another shape is no side of this prism)
+        n, o, na = face["n"], face["o"], np.asarray(cap["n"], float)
+        P = [np.asarray(q, float) for q in face["pts"]]
+        for p0, p1 in lines:
+            if abs(float(n @ (p0 - o))) > tol or abs(float(n @ (p1 - o))) > tol:
+                continue
+            e = p1 - p0
+            L2 = float(e @ e)
+            ok = True
+            for q in P:
+                w = q - p0
+                w = w - na * float(w @ na)
+                t = min(1.0, max(0.0, float(w @ e) / L2)) if L2 > 0 else 0.0
+                if float(np.linalg.norm(w - t * e)) > 10 * tol:
+                    ok = False
+                    break
+            if ok:
+                return True
+        return False
     if face["name"] == "CYL":
         d = np.asarray(face["dirv"], float)
         d = d / (np.linalg.norm(d) or 1.0)
@@ -357,13 +423,277 @@ def detect_prisms(infos, order, loops=None):
             if not inf["pts"]:
                 continue
             if all(abs(float(np.asarray(p) @ na) - oa) <= TOL or abs(float(np.asarray(p) @ na) - ob) <= TOL
-                   for p in inf["pts"]) and _swept(inf, infos[a], lines, arcs):
+                   for p in inf["pts"]) and _swept(inf, infos[a], lines, arcs, loops.get(k)):
                 lat.add(k)
         ext[a] = (b, abs(shift), shift > 0)
         twin[b] = a
         implied |= lat
         used |= {a, b}
     return ext, twin, implied
+
+
+def _ukey(n):
+    """One sign for a direction and its opposite, so parallel planes share it."""
+    n = np.asarray(n, float)
+    return n if n[int(np.argmax(np.abs(n)))] > 0 else -n
+
+
+def _straight_along(infos, k, u):
+    """The face - every member of a merged group - is a straight sweep along u: a plane containing u, or a cylinder or a
+    linear extrusion whose direction is u."""
+    for m in infos[k].get("members", [k]):
+        inf = infos[m]
+        if inf["name"] == "PLANE":
+            if abs(float(inf["n"] @ u)) > 1e-4:
+                return False
+        elif inf["name"] in ("CYL", "EXT"):
+            d = np.asarray(inf["dirv"], float)
+            if abs(abs(float(d @ u)) / (np.linalg.norm(d) or 1.0) - 1.0) > 1e-5:
+                return False
+        else:
+            return False
+    return True
+
+
+def detect_loop_prisms(infos, order, loops, skip, diag):
+    """Loops of two parallel planar faces joined by straight walls: a boss, a pocket, a through cut, a text or logo outline
+    extruded between two levels. Like a prism's side faces, those walls follow from the loop and the offset, so they are
+    implied; the second face's copy of the loop is written as a reference to the first.
+
+    A loop pair is accepted only when every segment of the loop has a wall through both of its ends that is a straight sweep
+    along the normal (plane, cylinder or linear extrusion, checked on every merged member) and every wall runs from one
+    level to the other, touching nothing but the two loops.
+    Returns (links, implied, pairs): links[k] = [(i, k2, i2, dz), ...] for the face holding the loop (dz: offset of face k2
+    along k's outward normal); pairs: one dict per accepted pair (for relief grouping)."""
+    rep = lambda q: infos[q].get("dead", q)
+    pos = {k: j for j, k in enumerate(order)}
+    adjrep = {k: {rep(q) for q in infos[k]["adj"]} - {k} for k in order}
+    tp = max(2e-3, 2e-5 * diag)                   # same point: loop vertices come from rounded local coordinates
+    buckets, info = {}, {}
+    for k in order:
+        inf = infos[k]
+        if inf["name"] != "PLANE" or k in skip or not loops.get(k):
+            continue
+        fr, u = inf["frame"], _ukey(inf["n"])
+        world = lambda uv: fr.o + fr.x * float(uv[0]) + fr.y * float(uv[1])
+        flat = lambda p: p - u * float(p @ u)
+        for i, lp in enumerate(loops[k]):
+            if "c" in lp:
+                c = flat(world(lp["c"][:2]))
+                segs, verts, kind = [("C", None, None, c, float(lp["c"][2]))], np.array([c]), ("c", round(float(lp["c"][2]), 2))
+            elif "e" in lp:
+                if any(sg[0] == "S" and len(sg) != 6 for sg in lp["e"]):
+                    continue                      # a spline without its exact form: the walls could not be rebuilt
+                pts = [lp["s"]] + [seg_end(sg) for sg in lp["e"]]
+                verts = np.array([flat(world(p)) for p in pts[:-1]])      # the last end is the start again
+                segs = []
+                for j, sg in enumerate(lp["e"]):
+                    c, rad = None, None
+                    if sg[0] == "A":
+                        c, rad = flat(world(sg[1:3])), float(np.hypot(pts[j][0] - sg[1], pts[j][1] - sg[2]))
+                    segs.append((sg[0], j, j + 1, c, rad))
+                kind = ("e", len(lp["e"]))
+            else:
+                continue
+            info[(k, i)] = {"segs": segs, "verts": verts, "level": float(fr.o @ u), "u": u, "circle": kind[0] == "c"}
+            buckets.setdefault((tuple(np.round(u, 3)), kind), []).append((k, i))
+
+    def same_outline(a, b):
+        va, vb = info[a]["verts"], info[b]["verts"]
+        if float(np.linalg.norm(va.mean(0) - vb.mean(0))) > tp or abs(float(info[a]["u"] @ info[b]["u"]) - 1.0) > 1e-6:
+            return False
+        d = np.linalg.norm(va[:, None] - vb[None], axis=2)
+        return float(d.min(1).max()) <= tp and float(d.min(0).max()) <= tp
+
+    cands = []
+    for lst in buckets.values():
+        for x in range(len(lst)):
+            for y in range(x + 1, len(lst)):
+                a, b = lst[x], lst[y]
+                dl = abs(info[b]["level"] - info[a]["level"])
+                if a[0] != b[0] and dl > TOL and same_outline(a, b):
+                    cands.append((dl, pos[a[0]], pos[b[0]], a, b))
+    cands.sort()
+    used, implied, links, pairs = set(), set(), {}, []
+    for _, _, _, a, b in cands:
+        if a in used or b in used:
+            continue
+        ka, kb = a[0], b[0]
+        u, la, lb = info[a]["u"], info[a]["level"], info[b]["level"]
+        tol = TOL * max(1.0, abs(la), abs(lb))
+        verts, segs = info[a]["verts"], info[a]["segs"]
+        good = {}                                 # wall -> indices of the loop vertices it touches
+        for q in sorted(adjrep[ka] & adjrep[kb]):
+            if q in skip or q in implied or not infos[q]["pts"] or not _straight_along(infos, q, u):
+                continue
+            if infos[q]["name"] == "PLANE" and not _band(loops.get(q)):
+                continue                          # a planar wall with an arc or a hole is not one segment's sweep
+            top = set()
+            for p in infos[q]["pts"]:
+                p = np.asarray(p, float)
+                s = float(p @ u)
+                if abs(s - la) > tol and abs(s - lb) > tol:
+                    break
+                f = p - u * s
+                if info[a]["circle"]:
+                    if abs(float(np.linalg.norm(f - verts[0])) - segs[0][4]) > max(tp, 1e-3 * segs[0][4]):
+                        break
+                    continue
+                dv = np.linalg.norm(verts - f, axis=1)
+                j = int(np.argmin(dv))
+                if float(dv[j]) > tp:
+                    break
+                top.add(j)
+            else:
+                good[q] = top
+        cover = set()
+        nv = len(verts)
+        for kind, j0, j1, c, rad in segs:
+            if kind != "C":
+                j0, j1 = j0 % nv, j1 % nv
+            # a straight wall that touches both levels and both ends of the segment is bounded by that very edge: its
+            # sweep (a recognised arc of a short spline may disagree with the wall's own cylinder fit; both fit the edge)
+            hit = next((q for q, top in good.items() if kind == "C" or (j0 in top and j1 in top)), None)
+            if hit is None:
+                cover = None
+                break
+            cover.add(hit)
+        if not cover:
+            continue
+        holder, other = (a, b) if pos[ka] < pos[kb] else (b, a)
+        n_h = np.asarray(infos[holder[0]]["n"], float)
+        dz = (info[other]["level"] - info[holder]["level"]) * (1.0 if float(n_h @ u) > 0 else -1.0)
+        links.setdefault(holder[0], []).append((holder[1], other[0], other[1], dz))
+        implied |= cover
+        used |= {a, b}
+        pairs.append({"a": a, "b": b, "walls": sorted(cover), "u": u, "levels": (la, lb),
+                      "same_side": float(np.asarray(infos[ka]["n"]) @ np.asarray(infos[kb]["n"])) > 0,
+                      "curved": any(sg[0] in ("B", "S", "E") for sg in (loops[ka][a[1]].get("e") or [])),
+                      "outer": {a: a[1] == 0, b: b[1] == 0}})
+    return links, implied, pairs
+
+
+RELIEF_MAX_DEPTH = 0.03   # relief features are shallow: height / depth at most this fraction of the bbox diagonal
+
+
+def relief_groups(infos, order, pairs, diag):
+    """Shallow raised or sunk outlines on a planar face - lettering, logos, labels - from the loop pairs.
+
+    Pairs between two same-facing planes at the same two levels form one group. A pair whose upper face holds the loop as
+    its outer loop is a boss (the upper face stands on the lower one), one whose lower face holds it as its outer loop is a
+    pocket; the group is an emboss if bosses are the majority, else an engrave. `on` is the largest face of the base level
+    (lower for emboss, upper for engrave), `faces` the group's other faces (tops or floors, and islands such as the inside of
+    an O), `walls` the implied walls. A group counts as relief only if it is shallow, its feature faces are small next to
+    `on`, and it has spline outlines - a stepped rim, a row of pockets or a rectangular boss is not relief."""
+    groups = {}
+    for pr in pairs:
+        if not pr["same_side"]:
+            continue
+        lo, hi = sorted(pr["levels"])
+        if hi - lo > RELIEF_MAX_DEPTH * diag:
+            continue
+        groups.setdefault((tuple(np.round(pr["u"], 4)), round(lo, 3), round(hi, 3)), []).append(pr)
+    out = []
+    for (u, lo, hi), prs in groups.items():
+        if not any(pr["curved"] for pr in prs):
+            continue
+        uu = np.asarray(u, float)
+        up = lambda x: float(infos[x[0]]["o"] @ uu) > (lo + hi) / 2
+        boss = sum(1 for pr in prs for x in (pr["a"], pr["b"]) if up(x) and pr["outer"][x])
+        pocket = sum(1 for pr in prs for x in (pr["a"], pr["b"]) if not up(x) and pr["outer"][x])
+        faces = {x[0] for pr in prs for x in (pr["a"], pr["b"])}
+        high = {x[0] for pr in prs for x in (pr["a"], pr["b"]) if up(x)}
+        kind, base, feat = ("emboss", faces - high, high) if boss >= pocket else ("engrave", high, faces - high)
+        on = max(base, key=lambda k: infos[k]["area"])
+        if sum(infos[k]["area"] for k in feat) > 0.5 * infos[on]["area"]:
+            continue
+        out.append({"kind": kind, "on": on, "h": hi - lo, "faces": sorted(faces - {on}, key=order.index),
+                    "walls": sorted({q for pr in prs for q in pr["walls"]}), "loops": len(prs)})
+    return out
+
+
+def _signed_offset(host, p):
+    """Signed distance of p from the host face's carrier, positive on the outside of the material; None if not analytic."""
+    p = np.asarray(p, float)
+    name = host["name"]
+    if name == "PLANE":
+        return float(host["n"] @ p) - float(host["d"])
+    if name not in ("CYL", "CONE", "SPHERE", "TORUS") or host.get("cc") is None:
+        return None
+    sgn = 1.0 if host["cc"] else -1.0
+    c = np.asarray(host["p"], float)
+    if name == "SPHERE":
+        return sgn * (float(np.linalg.norm(p - c)) - float(host["rad"]))
+    d = np.asarray(host["dirv"], float)
+    d = d / (np.linalg.norm(d) or 1.0)
+    w = p - c
+    z = float(w @ d)
+    rho = float(np.linalg.norm(w - z * d))
+    if name == "CYL":
+        return sgn * (rho - float(host["rad"]))
+    if name == "CONE":
+        a = float(host["ang"])
+        return sgn * (rho - (float(host["rad"]) + z * math.tan(a))) * math.cos(a)
+    return sgn * (float(np.hypot(rho - float(host["rad"]), z)) - float(host["rad2"]))
+
+
+def relief_islands(infos, order, taken, diag, max_faces=200):
+    """Shallow details that the loop pairs do not explain, e.g. on a curved face: a connected set of faces whose only
+    neighbour outside the set is one face H, all within RELIEF_MAX_DEPTH of H's carrier, together smaller than H. Text
+    engraved into or imprinted on a cylindrical or domed face shows up like this (an imprinted label is a single face whose
+    only neighbour is H, at zero depth). A set of several faces counts only with a free-form or extruded-spline face among
+    them (lettering walls) and only when H carries at least two such sets (letters come several; one island is a tab or a
+    boss), so an ordinary shallow pocket or blind hole is not taken for relief; a single face with depth is a flat. One group per host face; the base IR has no loops for curved faces,
+    so the outlines themselves are not in it (stepir_query face <id>)."""
+    rep = lambda q: infos[q].get("dead", q)
+    adj = {k: {rep(q) for q in infos[k]["adj"]} - {k} for k in order}
+    out, seen = [], set(taken)
+    for h in order:
+        H = infos[h]
+        if H["name"] not in ("PLANE", "CYL", "CONE", "SPHERE", "TORUS"):
+            continue
+        faces, offs, multi = [], [], 0
+        for s in sorted(adj[h] - seen, key=order.index):
+            if s in seen:
+                continue
+            comp, stack, ok = {s}, [s], True
+            while stack and ok:
+                x = stack.pop()
+                for y in adj[x] - {h}:
+                    if y in comp:
+                        continue
+                    if y in seen or len(comp) >= max_faces:
+                        ok = False
+                        break
+                    comp.add(y)
+                    stack.append(y)
+            if not ok or sum(infos[k]["area"] for k in comp) > 0.25 * H["area"]:
+                continue
+            o = [_signed_offset(H, p) for k in comp for p in list(infos[k]["pts"]) + [infos[k]["g"]["centroid"]]]
+            if not o or any(x is None for x in o):
+                continue
+            depth = max(abs(x) for x in o)
+            if len(comp) == 1:
+                if depth > 1e-4 * diag:          # one face with depth is a flat or a cut (it would need walls), not relief
+                    continue
+            elif depth > RELIEF_MAX_DEPTH * diag or not any(infos[k]["name"] in ("BSPL", "BEZ", "EXT") for k in comp):
+                continue                          # lettering has spline walls; a blind hole or pocket does not
+            else:
+                multi += 1
+            seen |= comp
+            faces += sorted(comp, key=order.index)
+            offs += o
+        if multi == 1 and len(faces) > 1:         # one raised or sunk island is a feature (a tab, a boss); letters come several
+            seen -= set(faces)
+            faces = [f for f in faces if len(adj[f] - {h}) == 0 and max(abs(_signed_offset(H, p) or 0) for p in infos[f]["pts"]) <= 1e-4 * diag]
+            seen |= set(faces)
+            offs = [0.0] if faces else []
+        if faces:
+            depth = max(abs(x) for x in offs)
+            mean = float(np.mean(offs))
+            kind = "imprint" if depth <= 1e-4 * diag else "emboss" if mean > 0 else "engrave"
+            out.append({"kind": kind, "on": h, "h": depth, "faces": faces, "walls": [], "loops": None})
+    return out
 
 
 def add_cut_flags(ir_text):
@@ -410,12 +740,34 @@ def canon_axes(ir_text):
     return "\n".join(out) + "\n"
 
 
+def _ext_planar(inf, gen, out):
+    """An extrusion generator that lies in one plane across the direction d is written as 2D poles `uv` in the frame
+    (p, x, y = d x x) - the sketch to extrude - with its knots scaled to [0, 1]; otherwise unchanged (3D poles)."""
+    d = np.asarray(inf["dirv"], float)
+    d = d / (np.linalg.norm(d) or 1.0)
+    P = np.asarray(gen["poles"], float)
+    o = np.asarray(inf["p"], float)
+    if float(np.abs((P - o) @ d).max()) > 1e-6 * DIAG[0]:
+        return gen
+    x, y = canon_frame(d)
+    out["x"] = [r(c, 4) for c in x]
+    k = np.asarray(gen["knots"], float)
+    a, b = float(k[0]), float(k[-1])
+    span = (b - a) or 1.0
+    g = {kk: v for kk, v in gen.items() if kk != "poles"}
+    g["uv"] = [[float((q - o) @ x), float((q - o) @ y)] for q in P]
+    g["knots"] = [(float(t) - a) / span for t in k]
+    g["t"] = [(float(t) - a) / span for t in gen["t"]]
+    return g
+
+
 def swept_record(inf):
     """IR fields of a surface of revolution (REV) or linear extrusion (EXT): the motion and the exact generating curve.
 
     REV: `p`,`d` axis; `span` degrees of rotation; `gen` = the generator in the meridian plane spanned by `d` and `e`:
          `zr` its B-spline poles as (z along d from p, r along e), `deg`, `knots`, `mult`, optional `w`, `t` the used range.
-    EXT: `d` direction, `v` the extrusion range along d; `gen` the generator's 3D poles (`poles`) and spline data.
+    EXT: `d` direction, `v` the extrusion range along d; `gen` the generator: 2D poles `uv` in the frame (p, x, d x x) when
+         it lies in a plane across d (knots then scaled to [0, 1]), else 3D `poles`; and its spline data.
     A generator with more than MAX_GEN_POLES poles is left to the query tool (`gen` then only carries `n` and `deg`)."""
     gen = inf["gen"]
     n = len(gen.get("zr") or gen.get("poles"))
@@ -425,12 +777,15 @@ def swept_record(inf):
         out["span"] = r(math.degrees(inf["ur"][1] - inf["ur"][0]), 1)
     else:
         out["v"] = [r(inf["ext_v"][0]), r(inf["ext_v"][1])]
+        gen = _ext_planar(inf, gen, out)
     if n > geomnorm.MAX_GEN_POLES:
         out["gen"] = {"n": n, "deg": gen["deg"], "more": "stepir_query face"}
         return out
     g = {"deg": gen["deg"]}
     if "zr" in gen:
         g["zr"] = [[r(a), r(b)] for a, b in gen["zr"]]
+    elif "uv" in gen:
+        g["uv"] = [[r(a), r(b)] for a, b in gen["uv"]]
     else:
         g["poles"] = [[r(c) for c in p] for p in gen["poles"]]
     g["knots"] = [r(x, 6) for x in gen["knots"]]
@@ -508,6 +863,15 @@ def build_ir(path):
             rec = geomnorm.recognize_face(model, i, diag, centre)
             if rec is None and g["type"] in ("REVOLUTION", "EXTRUSION"):
                 rec = geomnorm.swept_carrier(model, i, g, diag)
+            if g["type"] == "BSPLINE" and (rec is None or rec["name"] not in ("PLANE", "CYL")):
+                # an exact straight extrusion is not a cone, sphere or torus that happens to fit within tolerance (a wall
+                # extruded from a nearly circular spline fits a cone of 0.02 degrees)
+                ruled = geomnorm.ruled_extrusion(model, i, g, diag)
+                rec = ruled or rec
+            elif g["type"] == "BSPLINE" and rec["name"] == "CYL":
+                ruled = geomnorm.ruled_extrusion(model, i, g, diag)
+                if ruled is not None and abs(abs(float(np.dot(ruled["dirv"], rec["dirv"]))) - 1.0) > 1e-6:
+                    rec = ruled
             if rec is not None:
                 inf.update(rec)
                 name = inf["name"]
@@ -558,11 +922,22 @@ def build_ir(path):
         loops_cache[k] = loops
         inf["pts"] = pts
     ext, twin, implied = detect_prisms(infos, order, loops_cache)
+    links, implied2, pairs = detect_loop_prisms(infos, order, loops_cache, set(ext) | set(twin) | implied, diag)
+    implied |= implied2
+    for k, lst in links.items():                 # the second face's copy of a linked loop becomes a reference
+        for i, k2, i2, dz in lst:
+            loops_cache[k2] = list(loops_cache[k2])
+            loops_cache[k2][i2] = {"same": [newid[k], i]}
+    relief = relief_groups(infos, order, pairs, diag)
+    relief += relief_islands(infos, order, {f for g in relief for f in g["faces"] + g["walls"] + [g["on"]]}, diag)
     types = Counter(infos[k]["name"] for k in live)
     bb = summ["bounding_box"]
     header = {"unit": "mm", "bbox": [[r(c) for c in bb["min"]], [r(c) for c in bb["max"]]], "vol": r(summ["volume"], 2),
               "area": r(summ["surface_area"], 2), "solids": len(model.bodies), "counts": {"face": len(live), "edge": summ["edge_count"]}, "types": dict(types),
               "implied": len(implied)}
+    if relief:                                   # faces that only carry shallow lettering / logos (see relief lines)
+        rf = [f for g in relief for f in g["faces"] + g["walls"]]
+        header["relief"] = {"faces": len(rf), "types": dict(Counter(infos[f]["name"] for f in rf))}
     lines = [json.dumps(header, separators=(",", ":"))]
     for j, k in enumerate(order):
         if k in implied:
@@ -579,12 +954,14 @@ def build_ir(path):
                     rec["ext"] = {"to": newid[ext[k][0]], "h": r(ext[k][1])}
                     if ext[k][2]:
                         rec["ext"]["cut"] = 1
-                loops = loops_cache[k]
+                loops = settle_splines(loops_cache[k], {i for i, *_ in links.get(k, [])})
                 rects = [rect_of(l) for l in loops]
                 if len(loops) == 1 and rects[0] is not None:
                     rec["rect"] = rects[0]
                 else:
                     rec["loops"] = loops
+                if k in links:
+                    rec["prism"] = [[i, newid[k2], r(dz)] for i, k2, i2, dz in sorted(links[k])]
         else:
             if "p" in inf:
                 rec["p"] = [r(c) for c in inf["p"]]
@@ -640,6 +1017,8 @@ def build_ir(path):
     if CANON_CYL:
         lines = canon_axes("\n".join(lines)).rstrip("\n").split("\n")
     build_ir.last_infos, build_ir.last_live, build_ir.last_newid = infos, live, newid
+    build_ir.last_relief = [{"kind": g["kind"], "on": newid[g["on"]], "h": r(g["h"]), "faces": [newid[f] for f in g["faces"]],
+                             "walls": len(g["walls"]), **({"loops": g["loops"]} if g["loops"] else {})} for g in relief]
     build_ir.last_face_map = dict(newid)      # original face index -> IR id, for tools that need to join with the B-rep
     return lines
 

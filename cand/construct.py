@@ -747,7 +747,7 @@ def loft_params(model, sdk_faces, diag):
     L = layers(model, sdk_faces, diag, "loft")
     stations = []                                         # (layer, t)
     for li, g in enumerate(L):
-        S = BRep_Tool.Surface_s(g.members[0].face)
+        S = sdk_ocp.surface(g.members[0].face)
         npoles = 2
         if isinstance(S, Geom_BSplineSurface):
             npoles = S.NbUPoles() if g.members[0].fam == "u" else S.NbVPoles()
@@ -805,7 +805,7 @@ def plane_stations(model, sdk_faces, L, diag):
         return None
     npoles = 3
     for i in sdk_faces:
-        S = BRep_Tool.Surface_s(_face(model, i))
+        S = sdk_ocp.surface(_face(model, i))
         if isinstance(S, Geom_BSplineSurface):
             npoles = max(npoles, min(S.NbUPoles(), S.NbVPoles()))
     k = max(3, min(npoles, MAX_LOFT_SECTIONS))
